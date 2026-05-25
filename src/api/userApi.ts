@@ -7,8 +7,16 @@ interface CurrentUserResponse {
   id: string;
   name: string;
   email?: string;
+  phone?: string;
+  avatarUrl?: string;
   role: AuthUser["role"];
   bloodGroup?: string;
+}
+
+interface UpdateCurrentUserPayload {
+  name?: string;
+  phone?: string;
+  avatarUrl?: string;
 }
 
 export async function getCurrentUser() {
@@ -18,7 +26,6 @@ export async function getCurrentUser() {
     id: user.id,
     fullName: user.name,
     email: user.email,
-    role: user.role,
-    bloodGroup: user.bloodGroup as any
+    role: user.role
   };
 }

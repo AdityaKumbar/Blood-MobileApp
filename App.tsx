@@ -1,8 +1,9 @@
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useMemo, useState } from "react";
-import { Image, Pressable, SafeAreaView, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
+import { Alert, Image, Pressable, SafeAreaView, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 import { Provider } from "react-redux";
 import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 
 import { store } from "./src/redux/store";
 import { useAppDispatch, useAppSelector } from "./src/redux/hooks";
@@ -10,8 +11,9 @@ import { bootstrapAuth, loginUser, logoutUser, registerUser } from "./src/redux/
 import { fetchEmergencyDetails, fetchEmergencyFeed } from "./src/redux/slices/emergencySlice";
 import { fetchDonorProfile, fetchDonationHistory } from "./src/redux/slices/donorSlice";
 import { fetchNotifications } from "./src/redux/slices/notificationSlice";
+import { setProfileInfo } from "./src/redux/slices/profileSettingsSlice";
 
-type Route = "login" | "signup" | "dashboard" | "map" | "requestDetails" | "schedule" | "history" | "profile" | "notifications";
+type Route = "login" | "signup" | "dashboard" | "map" | "requestDetails" | "schedule" | "history" | "profile" | "notifications" | "editProfile";
 
 const c = {
   bg: "#f7f8fc",
@@ -50,6 +52,9 @@ function AppContent() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [bloodGroup, setBloodGroup] = useState<string>("O+");
+  const [editName, setEditName] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editAvatarUri, setEditAvatarUri] = useState("");
 
   const selectedEmergency = emergency.selectedRequest ?? emergency.feed.find((x) => x.id === selectedEmergencyId) ?? null;
   const urgentFeed = useMemo(() => emergency.feed.filter((item) => item.status !== "FULFILLED"), [emergency.feed]);
@@ -175,7 +180,7 @@ function AppContent() {
     } else if (auth.status === "unauthenticated") {
       setRoute("login");
     }
-  }, [auth.status, dispatch, route]);
+  }, [auth.status, dispatch]);
 
   useEffect(() => {
     if (selectedEmergencyId) {
@@ -183,8 +188,63 @@ function AppContent() {
     }
   }, [selectedEmergencyId, dispatch]);
 
+  useEffect(() => {
+    setEditName(profileSettings.profileInfo.fullName || auth.user?.fullName || "");
+    setEditPhone(profileSettings.profileInfo.phone || auth.user?.phone || "");
+    setEditAvatarUri(profileSettings.profileInfo.avatarUri || "");
+  }, [
+    profileSettings.profileInfo.fullName,
+    profileSettings.profileInfo.phone,
+    profileSettings.profileInfo.avatarUri,
+    auth.user?.fullName,
+    auth.user?.phone,
+  ]);
+
   const isAuth = auth.status !== "authenticated";
-  const compactHeader = route === "notifications" || route === "requestDetails" || route === "history";
+  const compactHeader =
+    route === "notifications" || route === "requestDetails" || route === "history" || route === "editProfile";
+
+  const handlePickProfileImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission needed", "Allow photo library access to select a profile picture.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets.length > 0) {
+      setEditAvatarUri(result.assets[0].uri);
+    }
+  };
+
+  const handleSaveProfile = () => {
+    const name = editName.trim();
+    const phone = editPhone.trim();
+    if (!name || name.length < 3) {
+      Alert.alert("Invalid name", "Please enter at least 3 characters.");
+      return;
+    }
+    if (!/^[0-9]{10,14}$/.test(phone)) {
+      Alert.alert("Invalid phone", "Phone number must be 10 to 14 digits.");
+      return;
+    }
+
+    dispatch(
+      setProfileInfo({
+        fullName: name,
+        phone,
+        avatarUri: editAvatarUri,
+      })
+    );
+    Alert.alert("Success", "Profile updated successfully.");
+    setRoute("profile");
+  };
 
   const TabItem = ({ icon, label, active, onPress }: { icon: string; label: string; active: boolean; onPress: () => void }) => {
     return (
@@ -233,7 +293,11 @@ function AppContent() {
         ) : null}
       </View>
 
-      <ScrollView contentContainerStyle={[s.content, !isAuth && s.withTabs]} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={[s.content, !isAuth && s.withTabs]}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
         {isAuth && route === "login" && (
           <View style={s.authCard}>
             <Text style={s.h1}>Welcome Back</Text>
@@ -707,7 +771,7 @@ function AppContent() {
 
               <Pressable
                 style={s.mockEditProfileBtn}
-                onPress={() => {}}
+                onPress={() => setRoute("editProfile")}
               >
                 <Ionicons name="create-outline" size={18} color="#b7102a" />
                 <Text style={s.mockEditProfileText}>
@@ -725,6 +789,37 @@ function AppContent() {
                 </Text>
               </Pressable>
             </View>
+          </View>
+        )}
+
+        {!isAuth && route === "editProfile" && (
+          <View style={s.stack}>
+            <View style={s.mockProfileCard}>
+              <Text style={s.mockHistoryTitle}>Edit Profile</Text>
+              <Pressable onPress={handlePickProfileImage} style={s.mockAvatarWrapper}>
+                <Image
+                  source={editAvatarUri ? { uri: editAvatarUri } : require("./src/assets/dummy_avatar.png")}
+                  style={s.mockAvatarImage}
+                  resizeMode="cover"
+                />
+                <View style={s.mockBloodBadge}>
+                  <Ionicons name="camera" size={14} color="#fff" />
+                </View>
+              </Pressable>
+              <Text style={s.small}>Tap photo to change</Text>
+
+              <View style={{ width: "100%", gap: 12, marginTop: 12 }}>
+                <Field label="FULL NAME" value={editName} setValue={setEditName} />
+                <Field label="PHONE NUMBER" value={editPhone} setValue={setEditPhone} />
+              </View>
+            </View>
+
+            <Pressable style={s.primaryButton} onPress={handleSaveProfile}>
+              <Text style={s.primaryButtonText}>Save Changes</Text>
+            </Pressable>
+            <Pressable style={s.secondaryButton} onPress={() => setRoute("profile")}>
+              <Text style={s.secondaryButtonText}>Cancel</Text>
+            </Pressable>
           </View>
         )}
 
@@ -790,7 +885,15 @@ export default function App() {
 }
 
 function title(r: Route) {
-  return r === "notifications" ? "Notifications" : r === "requestDetails" ? "Request Details" : r === "history" ? "Donation History" : "LifeStream";
+  return r === "notifications"
+    ? "Notifications"
+    : r === "requestDetails"
+      ? "Request Details"
+      : r === "history"
+        ? "Donation History"
+        : r === "editProfile"
+          ? "Edit Profile"
+          : "LifeStream";
 }
 
 function Field({ label, value, setValue, secure = false }: { label: string; value: string; setValue: (v: string) => void; secure?: boolean }) {

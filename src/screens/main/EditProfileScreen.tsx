@@ -8,6 +8,8 @@ import { AppInput } from "../../components/ui/AppInput";
 import { Screen } from "../../components/ui/Screen";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { setProfileInfo } from "../../redux/slices/profileSettingsSlice";
+import { updateCurrentUser } from "../../api/userApi";
+import { fetchCurrentUser } from "../../redux/slices/authSlice";
 import { PROFILE_ROUTES } from "../../navigation/constants";
 import type { ProfileStackScreenProps } from "../../navigation/types";
 
@@ -21,6 +23,7 @@ export function EditProfileScreen({ navigation }: Props) {
   const [name, setName] = useState(profileInfo.fullName || authUser?.fullName || "");
   const [phone, setPhone] = useState(profileInfo.phone || authUser?.phone || "");
   const [avatarUri, setAvatarUri] = useState(profileInfo.avatarUri || "");
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (!profileInfo.fullName && authUser?.fullName) {
@@ -53,17 +56,45 @@ export function EditProfileScreen({ navigation }: Props) {
     }
   };
 
-  const handleSaveChanges = () => {
-    dispatch(
-      setProfileInfo({
-        fullName: name.trim(),
-        phone: phone.trim(),
-        avatarUri: avatarUri,
-      })
-    );
-    Alert.alert("Success", "Profile details updated successfully!", [
-      { text: "OK", onPress: () => navigation.goBack() }
-    ]);
+  const handleSaveChanges = async () => {
+    const trimmedName = name.trim();
+    const trimmedPhone = phone.trim();
+
+    if (trimmedName.length < 3) {
+      Alert.alert("Invalid name", "Please enter at least 3 characters.");
+      return;
+    }
+
+    if (!/^[0-9]{10,14}$/.test(trimmedPhone)) {
+      Alert.alert("Invalid phone number", "Phone number must be 10 to 14 digits.");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      await updateCurrentUser({
+        name: trimmedName,
+        phone: trimmedPhone,
+        avatarUrl: avatarUri || ""
+      });
+
+      dispatch(
+        setProfileInfo({
+          fullName: trimmedName,
+          phone: trimmedPhone,
+          avatarUri
+        })
+      );
+      await dispatch(fetchCurrentUser());
+
+      Alert.alert("Success", "Profile details updated successfully!", [
+        { text: "OK", onPress: () => navigation.goBack() }
+      ]);
+    } catch {
+      Alert.alert("Update failed", "Unable to update profile right now. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -130,8 +161,10 @@ export function EditProfileScreen({ navigation }: Props) {
 
         {/* Save Button */}
         <AppButton
-          label="Save Profile Changes"
+          label={isSaving ? "Saving..." : "Save Profile Changes"}
           onPress={handleSaveChanges}
+          loading={isSaving}
+          disabled={isSaving}
         />
       </ScrollView>
     </Screen>

@@ -8,6 +8,7 @@ export interface AuthUser {
   fullName: string;
   email?: string;
   phone?: string;
+  avatarUrl?: string;
   role: UserRole;
   bloodGroup?: BloodGroup;
 }

@@ -38,11 +38,11 @@ const initialState: RegisterFormState = {
 
 export function RegisterScreen({ navigation }: Props) {
   const dispatch = useAppDispatch();
-  const { status, error } = useAppSelector((state) => state.auth);
+  const { registerStatus, error } = useAppSelector((state) => state.auth);
   const [form, setForm] = useState<RegisterFormState>(initialState);
   const [fieldErrors, setFieldErrors] = useState<RegisterFieldErrors>({});
 
-  const isSubmitting = status === "loading";
+  const isSubmitting = registerStatus === "loading";
 
   const updateField = <T extends keyof RegisterFormState>(key: T, value: RegisterFormState[T]) => {
     setForm((prev) => ({ ...prev, [key]: value }));

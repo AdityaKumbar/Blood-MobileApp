@@ -34,7 +34,7 @@ function buildDemoAuthResponse(identifier: string): AuthResponse {
 }
 
 function mapBackendAuthResponse(data: {
-  user: { id: string; name: string; email?: string; role: AuthResponse["user"]["role"]; bloodGroup?: string };
+  user: { id: string; name: string; email?: string; role: AuthResponse["user"]["role"] };
   accessToken: string | null;
   refreshToken: string | null;
 }): AuthResponse {
@@ -43,8 +43,7 @@ function mapBackendAuthResponse(data: {
       id: data.user.id,
       fullName: data.user.name,
       email: data.user.email,
-      role: data.user.role,
-      bloodGroup: data.user.bloodGroup as any
+      role: data.user.role
     },
     tokens: {
       accessToken: data.accessToken ?? "",
@@ -54,7 +53,7 @@ function mapBackendAuthResponse(data: {
 }
 
 type BackendAuthData = {
-  user: { id: string; name: string; email?: string; role: AuthResponse["user"]["role"]; bloodGroup?: string };
+  user: { id: string; name: string; email?: string; role: AuthResponse["user"]["role"] };
   accessToken: string | null;
   refreshToken: string | null;
 };
@@ -108,6 +107,7 @@ export async function register(payload: RegisterPayload): Promise<AuthResponse> 
     {
       name: payload.fullName,
       email: payload.email,
+      phone: payload.phone,
       password: payload.password,
       role: "DONOR",
       bloodGroup: payload.bloodGroup,
