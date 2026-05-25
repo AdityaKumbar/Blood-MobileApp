@@ -8,6 +8,7 @@ import { extractErrorMessage } from "../../utils/error";
 interface DonorState {
   isRegistered: boolean;
   isAvailable: boolean;
+  lastDonatedAt: string | null;
   eligibility: DonorEligibility | null;
   history: DonationHistoryItem[];
   profileStatus: AsyncStatus;
@@ -20,6 +21,7 @@ interface DonorState {
 const initialState: DonorState = {
   isRegistered: false,
   isAvailable: false,
+  lastDonatedAt: null,
   eligibility: null,
   history: [],
   profileStatus: "idle",
@@ -91,6 +93,7 @@ const donorSlice = createSlice({
         state.profileStatus = "succeeded";
         state.isRegistered = action.payload.isRegistered;
         state.isAvailable = action.payload.isAvailable;
+        state.lastDonatedAt = action.payload.lastDonatedAt ?? null;
         state.eligibility = action.payload.eligibility;
         state.history = action.payload.history;
       })
@@ -106,6 +109,7 @@ const donorSlice = createSlice({
         state.registerStatus = "succeeded";
         state.isRegistered = action.payload.isRegistered;
         state.isAvailable = action.payload.isAvailable;
+        state.lastDonatedAt = action.payload.lastDonatedAt ?? null;
         state.eligibility = action.payload.eligibility;
       })
       .addCase(registerDonor.rejected, (state, action) => {

@@ -26,7 +26,10 @@ export async function getCurrentUser() {
     id: user.id,
     fullName: user.name,
     email: user.email,
-    role: user.role
+    phone: user.phone,
+    avatarUrl: user.avatarUrl,
+    role: user.role,
+    bloodGroup: user.bloodGroup as AuthUser["bloodGroup"] | undefined
   };
 }
 

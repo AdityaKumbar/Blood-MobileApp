@@ -9,8 +9,12 @@ import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import { store } from "./src/redux/store";
 import { useAppDispatch, useAppSelector } from "./src/redux/hooks";
 import { bootstrapAuth, loginUser, logoutUser, registerUser } from "./src/redux/slices/authSlice";
-import { fetchEmergencyDetails, fetchEmergencyFeed, acceptEmergencyDonation } from "./src/redux/slices/emergencySlice";
+import { fetchEmergencyDetails, fetchEmergencyFeed } from "./src/redux/slices/emergencySlice";
+import { AppBrand } from "./src/components/branding/AppBrand";
 import { fetchDonorProfile, fetchDonationHistory } from "./src/redux/slices/donorSlice";
+import { NextEligibilityCard } from "./src/components/donor/NextEligibilityCard";
+import { formatDonationType } from "./src/utils/donation";
+import { getEligibilityDisplay, resolveLastDonatedAt } from "./src/utils/eligibility";
 import { fetchNotifications } from "./src/redux/slices/notificationSlice";
 import { setProfileInfo } from "./src/redux/slices/profileSettingsSlice";
 
@@ -293,41 +297,26 @@ function AppContent() {
     }>;
   }, [urgentFeed]);
 
-  const historyToRenderInApp = useMemo(() => {
-    const defaultHistory = [
-      {
-        id: "mock-h1",
-        location: "City General Hospital",
-        type: "Whole Blood Donation",
-        date: "Feb 14, 2024",
-        isRed: true,
-      },
-      {
-        id: "mock-h2",
-        location: "Red Cross Mobile Unit",
-        type: "Plasma Donation",
-        date: "Nov 20, 2023",
-        isRed: false,
-      },
-      {
-        id: "mock-h3",
-        location: "Northside Medical Center",
-        type: "Whole Blood Donation",
-        date: "Aug 05, 2023",
-        isRed: true,
-      },
-    ];
-    if (donor.history && donor.history.length > 0) {
-      return donor.history.map((item, idx) => ({
+  const eligibilityDisplay = useMemo(() => {
+    const lastDonatedAt = resolveLastDonatedAt(donor.lastDonatedAt, donor.history[0]?.donatedAt);
+    return getEligibilityDisplay(donor.eligibility, lastDonatedAt);
+  }, [donor.eligibility, donor.lastDonatedAt, donor.history]);
+
+  const historyToRenderInApp = useMemo(
+    () =>
+      donor.history.map((item, idx) => ({
         id: item.id,
         location: item.location,
-        type: item.units ? `${item.units} Unit(s) - Whole Blood` : "Whole Blood Donation",
-        date: new Date(item.donatedAt).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }),
-        isRed: idx % 2 === 0
-      }));
-    }
-    return defaultHistory;
-  }, [donor.history]);
+        type: formatDonationType(item.donationType, item.units),
+        date: new Date(item.donatedAt).toLocaleDateString("en-US", {
+          month: "short",
+          day: "2-digit",
+          year: "numeric",
+        }),
+        isRed: idx % 2 === 0,
+      })),
+    [donor.history]
+  );
 
   useEffect(() => {
     dispatch(bootstrapAuth());
@@ -480,10 +469,7 @@ function AppContent() {
               <Text style={[s.brandCompact, route === "requestDetails" && { color: "#b7102a" }]}>{title(route)}</Text>
             </Pressable>
           ) : (
-            <View style={s.topLeftBrand}>
-              <Text style={s.logoRegular}>bloodtype </Text>
-              <Text style={s.logoBold}>LifeStream</Text>
-            </View>
+            <AppBrand />
           )}
         </View>
         {compactHeader && route === "requestDetails" ? (
@@ -594,37 +580,25 @@ function AppContent() {
               </Text>
               <View style={s.impactStatsRow}>
                 <View style={s.impactStatItem}>
-                  <Text style={s.impactStatNumber}>
-                    {donor.history.length > 0 ? donor.history.length : "12"}
-                  </Text>
+                  <Text style={s.impactStatNumber}>{donor.history.length}</Text>
                   <Text style={s.impactStatLabel}>Donations</Text>
-                </View>
-                <View style={s.impactStatDivider} />
-                <View style={s.impactStatItem}>
-                  <Text style={s.impactStatNumber}>
-                    {donor.history.length > 0 ? donor.history.length * 3 : "36"}
-                  </Text>
-                  <Text style={s.impactStatLabel}>Lives Saved</Text>
                 </View>
               </View>
             </View>
 
-            {/* Next Eligibility Card */}
-            <View style={s.eligibilityCard}>
-              <Text style={s.eligibilityTitle}>Next Eligibility</Text>
-              <Text style={s.eligibilitySubtitle}>
-                You are eligible to donate in 14 days.
-              </Text>
-              
-              <View style={s.progressBarTrack}>
-                <View style={[s.progressBarFill, { width: "70%" }]} />
-              </View>
-              
-              <View style={s.eligibilityDatesRow}>
-                <Text style={s.eligibilityDateText}>Last: Oct 12</Text>
-                <Text style={s.eligibilityDateText}>Target: Dec 12</Text>
-              </View>
-            </View>
+            <NextEligibilityCard
+              variant="stylesheet"
+              display={eligibilityDisplay}
+              styles={{
+                card: s.eligibilityCard,
+                title: s.eligibilityTitle,
+                subtitle: s.eligibilitySubtitle,
+                track: s.progressBarTrack,
+                fill: s.progressBarFill,
+                datesRow: s.eligibilityDatesRow,
+                dateText: s.eligibilityDateText,
+              }}
+            />
 
             {/* Urgent Requests Header */}
             <View style={s.sectionHeader}>
@@ -1216,7 +1190,7 @@ function AppContent() {
             {donor.historyStatus === "loading" ? <Text style={s.small}>Loading history...</Text> : null}
             {donor.history.length === 0 ? (
               <View style={s.profileCard}>
-                <Text style={[s.body, { textAlign: "center" }]}>No donations recorded yet.</Text>
+                <Text style={[s.body, { textAlign: "center" }]}>No donation till now.</Text>
               </View>
             ) : (
               donor.history.map((item) => (
@@ -1262,7 +1236,7 @@ function AppContent() {
               {/* Donations Count Badge */}
               <View style={s.mockDonationBadge}>
                 <Text style={s.mockDonationBadgeText}>
-                  {(donor.history && donor.history.length > 0 ? donor.history.length : 8)} Donations
+                  {donor.history.length} Donations
                 </Text>
               </View>
             </View>
@@ -1270,42 +1244,50 @@ function AppContent() {
             {/* Donation History Section */}
             <Text style={s.mockHistoryTitle}>Donation History</Text>
 
-            {/* Timeline List */}
-            <View style={s.mockTimelineContainer}>
-              {/* Timeline Line */}
-              <View style={s.mockTimelineLine} />
+            {donor.historyStatus === "loading" ? (
+              <Text style={s.small}>Loading donation history...</Text>
+            ) : null}
 
-              {historyToRenderInApp.map((item) => (
-                <View key={item.id} style={s.mockTimelineItem}>
-                  {/* Timeline dot */}
-                  <View
-                    style={[
-                      s.mockTimelineDot,
-                      { backgroundColor: item.isRed ? "#b7102a" : "#2b6485" }
-                    ]}
-                  >
-                    <Ionicons name="water" size={16} color="white" />
-                  </View>
+            {donor.historyStatus !== "loading" && donor.history.length === 0 ? (
+              <View style={s.profileCard}>
+                <Text style={[s.body, { textAlign: "center" }]}>No donation till now.</Text>
+              </View>
+            ) : null}
 
-                  {/* Card content */}
-                  <View style={s.mockTimelineCard}>
-                    <View style={s.mockTimelineHeader}>
-                      <Text style={s.mockTimelineLocation} numberOfLines={1}>
-                        {item.location}
-                      </Text>
-                      <View style={s.mockTimelineDateBadge}>
-                        <Text style={s.mockTimelineDateText}>
-                          {item.date}
-                        </Text>
-                      </View>
+            {donor.history.length > 0 ? (
+              <View style={s.mockTimelineContainer}>
+                <View style={s.mockTimelineLine} />
+
+                {historyToRenderInApp.map((item) => (
+                  <View key={item.id} style={s.mockTimelineItem}>
+                    <View
+                      style={[
+                        s.mockTimelineDot,
+                        { backgroundColor: item.isRed ? "#b7102a" : "#2b6485" }
+                      ]}
+                    >
+                      <Ionicons name="water" size={16} color="white" />
                     </View>
-                    <Text style={s.mockTimelineType}>
-                      {item.type}
-                    </Text>
+
+                    <View style={s.mockTimelineCard}>
+                      <View style={s.mockTimelineHeader}>
+                        <Text style={s.mockTimelineLocation} numberOfLines={1}>
+                          {item.location}
+                        </Text>
+                        <View style={s.mockTimelineDateBadge}>
+                          <Text style={s.mockTimelineDateText}>
+                            {item.date}
+                          </Text>
+                        </View>
+                      </View>
+                      <Text style={s.mockTimelineType}>
+                        {item.type}
+                      </Text>
+                    </View>
                   </View>
-                </View>
-              ))}
-            </View>
+                ))}
+              </View>
+            ) : null}
 
             {/* Action Buttons */}
             <View style={{ gap: 12, marginTop: 8 }}>
@@ -1477,9 +1459,6 @@ const s = StyleSheet.create({
     justifyContent: "space-between" 
   },
   topLeft: { flexDirection: "row", alignItems: "center", gap: 10 },
-  topLeftBrand: { flexDirection: "row", alignItems: "center" },
-  logoRegular: { color: c.primary, fontSize: 22, fontWeight: "400" },
-  logoBold: { color: c.primary, fontSize: 22, fontWeight: "700" },
   brandCompact: { color: c.text, fontSize: 20, fontWeight: "700", marginLeft: 6 },
   backBtn: { flexDirection: "row", alignItems: "center" },
   bellBtn: { padding: 4, position: "relative" },
