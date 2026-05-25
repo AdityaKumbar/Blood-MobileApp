@@ -1,14 +1,15 @@
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useMemo, useState } from "react";
-import { Alert, Image, Pressable, SafeAreaView, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
+import { Alert, Image, Pressable, SafeAreaView, ScrollView, StyleSheet, Switch, Text, TextInput, View, Platform, Linking } from "react-native";
 import { Provider } from "react-redux";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 
 import { store } from "./src/redux/store";
 import { useAppDispatch, useAppSelector } from "./src/redux/hooks";
 import { bootstrapAuth, loginUser, logoutUser, registerUser } from "./src/redux/slices/authSlice";
-import { fetchEmergencyDetails, fetchEmergencyFeed } from "./src/redux/slices/emergencySlice";
+import { fetchEmergencyDetails, fetchEmergencyFeed, acceptEmergencyDonation } from "./src/redux/slices/emergencySlice";
 import { fetchDonorProfile, fetchDonationHistory } from "./src/redux/slices/donorSlice";
 import { fetchNotifications } from "./src/redux/slices/notificationSlice";
 import { setProfileInfo } from "./src/redux/slices/profileSettingsSlice";
@@ -62,13 +63,11 @@ function AppContent() {
   const [editPhone, setEditPhone] = useState("");
   const [editAvatarUri, setEditAvatarUri] = useState("");
 
-  const selectedEmergency = emergency.selectedRequest ?? emergency.feed.find((x) => x.id === selectedEmergencyId) ?? null;
   const urgentFeed = useMemo(() => emergency.feed.filter((item) => item.status !== "FULFILLED"), [emergency.feed]);
 
   // Combined verified requests from admin/live feed and fallback items
   const allRequestsList = useMemo(() => {
     const live = emergency.feed.map((item, idx) => {
-      const isCritical = item.urgency === "CRITICAL" || item.urgency === "HIGH";
       return {
         id: item.id,
         patientName: item.patientName || "Anonymous Patient",
@@ -82,6 +81,9 @@ function AppContent() {
         backendStatus: (item.backendStatus || "FORWARDED_TO_APP") as any,
         createdAt: item.createdAt || new Date().toISOString(),
         distance: `${(1.2 + idx * 0.8).toFixed(1)} miles away`,
+        latitude: item.latitude || null,
+        longitude: item.longitude || null,
+        address: item.address || "450 Medical Center Drive, West District, Metro City 10293",
         liveItem: item as any
       };
     });
@@ -100,6 +102,9 @@ function AppContent() {
         backendStatus: "FORWARDED_TO_APP",
         createdAt: new Date(Date.now() - 3600000 * 2).toISOString(), // 2 hours ago
         distance: "2.4 miles away",
+        latitude: 15.8497,
+        longitude: 74.4977,
+        address: "450 Medical Center Drive, West District, Metro City 10293",
         liveItem: null as any
       },
       {
@@ -115,6 +120,9 @@ function AppContent() {
         backendStatus: "FORWARDED_TO_APP",
         createdAt: new Date(Date.now() - 3600000 * 5).toISOString(), // 5 hours ago
         distance: "5.1 miles away",
+        latitude: 15.8400,
+        longitude: 74.5020,
+        address: "789 Trauma Circle, East District, Belagavi 590001",
         liveItem: null as any
       },
       {
@@ -130,6 +138,9 @@ function AppContent() {
         backendStatus: "FORWARDED_TO_APP",
         createdAt: new Date(Date.now() - 3600000 * 12).toISOString(), // 12 hours ago
         distance: "4.8 miles away",
+        latitude: 15.8590,
+        longitude: 74.5080,
+        address: "101 Breathing Way, Camp Area, Belagavi 590009",
         liveItem: null as any
       },
       {
@@ -145,6 +156,9 @@ function AppContent() {
         backendStatus: "RESOLVED",
         createdAt: new Date(Date.now() - 3600000 * 24).toISOString(), // 1 day ago
         distance: "0.8 miles away",
+        latitude: 15.8320,
+        longitude: 74.5120,
+        address: "202 Blood Bank Blvd, Tilakwadi, Belagavi 590006",
         liveItem: null as any
       },
       {
@@ -160,6 +174,9 @@ function AppContent() {
         backendStatus: "RESOLVED",
         createdAt: new Date(Date.now() - 3600000 * 36).toISOString(), // 1.5 days ago
         distance: "2.1 miles away",
+        latitude: 15.8370,
+        longitude: 74.4920,
+        address: "555 Healthcare Ave, Hindwadi, Belagavi 590011",
         liveItem: null as any
       }
     ];
@@ -172,6 +189,10 @@ function AppContent() {
     }
     return combined;
   }, [emergency.feed]);
+
+  const selectedEmergency = useMemo(() => {
+    return allRequestsList.find((x) => x.id === selectedEmergencyId) ?? emergency.selectedRequest ?? null;
+  }, [allRequestsList, selectedEmergencyId, emergency.selectedRequest]);
 
   const filteredRequests = useMemo(() => {
     return allRequestsList.filter((item) => {
@@ -395,6 +416,55 @@ function AppContent() {
         {active && <Text style={s.tabLabelActive}>{label}</Text>}
       </Pressable>
     );
+  };
+
+  const handleDonateNow = async () => {
+    if (!selectedEmergency) {
+      Alert.alert("Info", "This is a demo donation. Thank you!");
+      setRoute("dashboard");
+      return;
+    }
+
+    if (selectedEmergency.id.startsWith("mock")) {
+      Alert.alert(
+        "Donation Accepted! 🩸", 
+        "Thank you! Your commitment to donate has been registered on this demo request. The hospital profile and administrator dashboard have been updated.",
+        [{ text: "OK", onPress: () => setRoute("dashboard") }]
+      );
+      return;
+    }
+
+    try {
+      await dispatch(acceptEmergencyDonation({
+        requestId: selectedEmergency.id,
+        donorName: auth.user?.fullName || "Alex Rivera"
+      })).unwrap();
+
+      Alert.alert(
+        "Donation Accepted! 🩸",
+        "Your commitment to donate has been registered. The hospital profile and administrator dashboard have been updated in real-time.",
+        [{ text: "OK", onPress: () => setRoute("dashboard") }]
+      );
+      
+      void dispatch(fetchEmergencyFeed());
+    } catch (err: any) {
+      Alert.alert("Unable to Register Donation", err || "Please try again later.");
+    }
+  };
+
+  const handleOpenDirections = () => {
+    if (!selectedEmergency) return;
+    const lat = selectedEmergency.latitude || 15.8497;
+    const lng = selectedEmergency.longitude || 74.4977;
+    const label = encodeURIComponent(selectedEmergency.hospital || "Hospital");
+    const url = Platform.select({
+      ios: `maps:0,0?q=${lat},${lng}`,
+      android: `geo:0,0?q=${lat},${lng}(${label})`,
+      default: `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`
+    });
+    Linking.openURL(url!).catch(() => {
+      Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`);
+    });
   };
 
   return (
@@ -697,7 +767,7 @@ function AppContent() {
             <View style={{ backgroundColor: "#b7102a", borderRadius: 16, padding: 16, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }}>
               <Ionicons name="warning" size={18} color="#fff" />
               <Text style={{ color: "#fff", fontSize: 15, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.5 }}>
-                URGENT - {selectedEmergency?.bloodGroup ?? "O+"} Needed
+                URGENT - {selectedEmergency?.oxygenNeeded ? "Oxygen Flasks" : (selectedEmergency?.bloodGroup ?? "O+") + " Blood"} Needed
               </Text>
             </View>
 
@@ -708,18 +778,29 @@ function AppContent() {
                   {selectedEmergency?.hospital ?? "City Hospital"}
                 </Text>
                 <Text style={{ fontSize: 13, color: "#5b403f", fontWeight: "500" }}>
-                  1.2 miles away • Open 24/7
+                  Active Request • Available 24/7
                 </Text>
                 <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 6, marginTop: 4 }}>
                   <Ionicons name="location-outline" size={14} color="#5b403f" style={{ marginTop: 2 }} />
                   <Text style={{ fontSize: 13, color: "#8f6f6e", flex: 1, lineHeight: 17 }}>
-                    450 Medical Center Drive, West District, Metro City 10293
+                    {selectedEmergency?.address ?? "450 Medical Center Drive, West District, Metro City 10293"}
                   </Text>
                 </View>
               </View>
-              <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: "#d2ebfc", alignItems: "center", justifyContent: "center", marginLeft: 12 }}>
+              <Pressable
+                onPress={() => {
+                  if (selectedEmergency?.contactNumber) {
+                    Linking.openURL(`tel:${selectedEmergency.contactNumber}`).catch(() => {
+                      Alert.alert("Error", "Could not initiate call to " + selectedEmergency.contactNumber);
+                    });
+                  } else {
+                    Alert.alert("Info", "No phone contact number provided for this request.");
+                  }
+                }}
+                style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: "#d2ebfc", alignItems: "center", justifyContent: "center", marginLeft: 12 }}
+              >
                 <Ionicons name="call" size={18} color="#005fa2" />
-              </View>
+              </Pressable>
             </View>
 
             {/* Case Context Card */}
@@ -729,8 +810,8 @@ function AppContent() {
               </Text>
               <Text style={{ fontSize: 14, color: "#001b3c", lineHeight: 20 }}>
                 {selectedEmergency?.patientName 
-                  ? `Emergency Surgery - A patient named ${selectedEmergency.patientName} requires ${selectedEmergency.bloodGroup} blood for a scheduled cardiac procedure.` 
-                  : `Emergency Surgery - A patient requires ${selectedEmergency?.bloodGroup ?? "O+"} blood for a scheduled cardiac procedure.`}
+                  ? `Emergency ${selectedEmergency.oxygenNeeded ? "Oxygen Setup" : "Surgery"} - A patient named ${selectedEmergency.patientName} requires urgent ${selectedEmergency.oxygenNeeded ? `${selectedEmergency.unitsRequired} Liters of Oxygen` : `${selectedEmergency.bloodGroup} Blood`} for a critical medical procedure.` 
+                  : `Emergency Procedure - A patient requires ${selectedEmergency?.oxygenNeeded ? "Oxygen cylinders" : "Blood transfusion"} at the earliest.`}
               </Text>
             </View>
 
@@ -742,41 +823,73 @@ function AppContent() {
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                 <Ionicons name="alert-circle" size={18} color="#b7102a" />
                 <Text style={{ fontSize: 15, fontWeight: "800", color: "#b7102a" }}>
-                  Critical Shortage
+                  {selectedEmergency?.status === "FULFILLED" ? "Donation Complete" : "Critical Shortage"}
                 </Text>
               </View>
               
               {/* Progress bar track */}
               <View style={{ height: 6, backgroundColor: "rgba(183, 16, 42, 0.1)", borderRadius: 3, overflow: "hidden" }}>
-                <View style={{ height: "100%", width: "25%", backgroundColor: "#b7102a", borderRadius: 3 }} />
+                <View style={{ height: "100%", width: selectedEmergency?.status === "FULFILLED" ? "100%" : "25%", backgroundColor: selectedEmergency?.status === "FULFILLED" ? "#2e7d32" : "#b7102a", borderRadius: 3 }} />
               </View>
-              <Text style={{ fontSize: 12, color: "#b7102a", fontWeight: "600" }}>
-                Only 1 unit remaining in stock.
+              <Text style={{ fontSize: 12, color: selectedEmergency?.status === "FULFILLED" ? "#2e7d32" : "#b7102a", fontWeight: "600" }}>
+                {selectedEmergency?.status === "FULFILLED" ? "All requested units successfully donated!" : `Only 1 unit remaining in stock. Urgent donors needed!`}
               </Text>
             </View>
 
-            {/* Premium Generated Map Visual */}
+            {/* Real Map Visual */}
             <View style={{ height: 180, borderRadius: 16, overflow: "hidden", borderWidth: 1, borderColor: "#EAECEF" }}>
-              <Image 
-                source={require("./src/assets/map_location_card.png")} 
-                style={{ width: "100%", height: "100%" }} 
-                resizeMode="cover"
-              />
+              <MapView
+                provider={PROVIDER_GOOGLE}
+                style={{ width: "100%", height: "100%" }}
+                initialRegion={{
+                  latitude: selectedEmergency?.latitude || 15.8497,
+                  longitude: selectedEmergency?.longitude || 74.4977,
+                  latitudeDelta: 0.015,
+                  longitudeDelta: 0.015
+                }}
+              >
+                <Marker
+                  coordinate={{
+                    latitude: selectedEmergency?.latitude || 15.8497,
+                    longitude: selectedEmergency?.longitude || 74.4977
+                  }}
+                  title={selectedEmergency?.hospital || "Hospital"}
+                  description={selectedEmergency?.address || "Belagavi, India"}
+                  pinColor="#b7102a"
+                />
+              </MapView>
             </View>
 
             {/* Action Buttons */}
             <View style={{ gap: 12, marginTop: 4 }}>
               <Pressable 
-                style={{ height: 50, backgroundColor: "#b7102a", borderRadius: 14, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, elevation: 2, shadowColor: "#b7102a", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 4 }}
-                onPress={() => setRoute("dashboard")}
+                style={{ 
+                  height: 50, 
+                  backgroundColor: selectedEmergency?.status === "FULFILLED" ? "#8f6f6e" : "#b7102a", 
+                  borderRadius: 14, 
+                  flexDirection: "row", 
+                  alignItems: "center", 
+                  justifyContent: "center", 
+                  gap: 8, 
+                  opacity: selectedEmergency?.status === "FULFILLED" ? 0.7 : 1,
+                  elevation: 2, 
+                  shadowColor: "#b7102a", 
+                  shadowOffset: { width: 0, height: 2 }, 
+                  shadowOpacity: 0.15, 
+                  shadowRadius: 4 
+                }}
+                disabled={selectedEmergency?.status === "FULFILLED"}
+                onPress={handleDonateNow}
               >
                 <Ionicons name="heart" size={18} color="#fff" />
-                <Text style={{ color: "#fff", fontSize: 16, fontWeight: "700" }}>Donate Now</Text>
+                <Text style={{ color: "#fff", fontSize: 16, fontWeight: "700" }}>
+                  {selectedEmergency?.status === "FULFILLED" ? "Donation Fulfilled" : "Donate Now"}
+                </Text>
               </Pressable>
               
               <Pressable 
                 style={{ height: 50, backgroundColor: "#EBF3FC", borderWidth: 1, borderColor: "#CBE2FB", borderRadius: 14, flexDirection: "row", alignItems: "center", justifyContent: "center" }}
-                onPress={() => setRoute("map")}
+                onPress={handleOpenDirections}
               >
                 <Text style={{ color: "#2b6485", fontSize: 16, fontWeight: "700" }}>Get Directions</Text>
               </Pressable>

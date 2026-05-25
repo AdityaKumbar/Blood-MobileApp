@@ -45,6 +45,7 @@ export function mapEmergencyItem(item: BackendEmergencyRequest): EmergencyReques
     createdAt: item.createdAt,
     updatedAt: item.updatedAt,
     latitude: item.createdBy?.latitude ?? null,
-    longitude: item.createdBy?.longitude ?? null
+    longitude: item.createdBy?.longitude ?? null,
+    address: item.createdBy?.address ?? null
   };
 }

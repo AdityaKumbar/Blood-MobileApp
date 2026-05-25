@@ -25,6 +25,7 @@ export interface EmergencyRequest {
   updatedAt: string;
   latitude?: number | null;
   longitude?: number | null;
+  address?: string | null;
 }
 
 export interface CreateEmergencyRequestPayload {
