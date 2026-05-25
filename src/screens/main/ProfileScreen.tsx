@@ -2,38 +2,16 @@ import { useEffect } from "react";
 import { Text, View, Image, Pressable, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
+import { AppBrand } from "../../components/branding/AppBrand";
 import { Screen } from "../../components/ui/Screen";
 import { PROFILE_ROUTES } from "../../navigation/constants";
 import type { ProfileStackScreenProps } from "../../navigation/types";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { logoutUser } from "../../redux/slices/authSlice";
 import { fetchDonationHistory, fetchDonorProfile } from "../../redux/slices/donorSlice";
+import { formatDonationType } from "../../utils/donation";
 
 type Props = ProfileStackScreenProps<typeof PROFILE_ROUTES.PROFILE>;
-
-const MOCK_HISTORY = [
-  {
-    id: "mock-h1",
-    location: "City General Hospital",
-    type: "Whole Blood Donation",
-    date: "Feb 14, 2024",
-    isRed: true,
-  },
-  {
-    id: "mock-h2",
-    location: "Red Cross Mobile Unit",
-    type: "Plasma Donation",
-    date: "Nov 20, 2023",
-    isRed: false,
-  },
-  {
-    id: "mock-h3",
-    location: "Northside Medical Center",
-    type: "Whole Blood Donation",
-    date: "Aug 05, 2023",
-    isRed: true,
-  },
-];
 
 export function ProfileScreen({ navigation }: Props) {
   const dispatch = useAppDispatch();
@@ -46,31 +24,27 @@ export function ProfileScreen({ navigation }: Props) {
     void dispatch(fetchDonationHistory());
   }, [dispatch]);
 
-  const historyToRender =
-    donor.history && donor.history.length > 0
-      ? donor.history.map((item, idx) => ({
-          id: item.id,
-          location: item.location,
-          type: item.units ? `${item.units} Unit(s) - Whole Blood` : "Whole Blood Donation",
-          date: new Date(item.donatedAt).toLocaleDateString("en-US", {
-            month: "short",
-            day: "2-digit",
-            year: "numeric"
-          }),
-          isRed: idx % 2 === 0
-        }))
-      : MOCK_HISTORY;
+  const historyToRender = donor.history.map((item, idx) => ({
+    id: item.id,
+    location: item.location,
+    type: formatDonationType(item.donationType, item.units),
+    date: new Date(item.donatedAt).toLocaleDateString("en-US", {
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+    }),
+    isRed: idx % 2 === 0,
+  }));
 
-  const totalDonations = donor.history && donor.history.length > 0 ? donor.history.length : 8;
+  const totalDonations = donor.history.length;
+  const hasHistory = totalDonations > 0;
+  const isHistoryLoading = donor.historyStatus === "loading";
 
   return (
     <Screen padded={false}>
       {/* Top Header */}
       <View className="flex-row items-center justify-between px-5 py-4 bg-white border-b border-[#eaecef]">
-        <View className="flex-row items-center">
-          <Text className="text-brand-600 text-2xl font-light">bloodtype </Text>
-          <Text className="text-brand-600 text-2xl font-bold">LifeStream</Text>
-        </View>
+        <AppBrand />
         <View className="flex-row items-center gap-4">
           <Pressable onPress={() => dispatch(logoutUser())}>
             <Ionicons name="log-out-outline" size={24} color="#001b3c" />
@@ -98,7 +72,7 @@ export function ProfileScreen({ navigation }: Props) {
             {/* Blood Type Badge Overlay */}
             <View className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-brand-600 border-2 border-white items-center justify-center shadow-sm">
               <Text className="text-white text-xs font-bold">
-                {user?.bloodGroup || "O+"}
+                {user?.bloodGroup ?? "—"}
               </Text>
             </View>
           </View>
@@ -124,52 +98,55 @@ export function ProfileScreen({ navigation }: Props) {
           Donation History
         </Text>
 
-        {/* Timeline List */}
-        <View className="mt-4 relative pl-1">
-          {/* Timeline Line */}
-          <View className="absolute left-[19px] top-6 bottom-6 w-[2px] bg-health-border/40" />
+        {isHistoryLoading ? (
+          <Text className="mt-4 text-sm text-health-muted">Loading donation history...</Text>
+        ) : null}
 
-          {historyToRender.map((item) => (
-            <View key={item.id} className="flex-row items-center mb-4">
-              {/* Timeline dot/circle */}
-              <View
-                className={`w-10 h-10 rounded-full flex items-center justify-center shadow-sm z-10 ${
-                  item.isRed ? "bg-brand-600" : "bg-[#2b6485]"
-                }`}
-              >
-                <Ionicons name="water" size={16} color="white" />
-              </View>
+        {!isHistoryLoading && !hasHistory ? (
+          <View className="mt-4 bg-white border border-[#eaecef] rounded-2xl p-6 items-center">
+            <Ionicons name="water-outline" size={32} color="#9ca3af" />
+            <Text className="mt-3 text-sm text-health-muted text-center">
+              No donation till now.
+            </Text>
+          </View>
+        ) : null}
 
-              {/* Card content */}
-              <View className="flex-1 ml-4 bg-white border border-[#eaecef] rounded-2xl p-4 shadow-xs">
-                <View className="flex-row items-center justify-between">
-                  <Text className="text-health-text font-bold text-sm flex-1 mr-2" numberOfLines={1}>
-                    {item.location}
-                  </Text>
-                  <View className="bg-[#EBF3FC] px-2 py-1 rounded-md">
-                    <Text className="text-[#2b6485] font-bold text-[10px]">
-                      {item.date}
-                    </Text>
-                  </View>
+        {!isHistoryLoading && hasHistory ? (
+          <View className="mt-4 relative pl-1">
+            <View className="absolute left-[19px] top-6 bottom-6 w-[2px] bg-health-border/40" />
+
+            {historyToRender.map((item) => (
+              <View key={item.id} className="flex-row items-center mb-4">
+                <View
+                  className={`w-10 h-10 rounded-full flex items-center justify-center shadow-sm z-10 ${
+                    item.isRed ? "bg-brand-600" : "bg-[#2b6485]"
+                  }`}
+                >
+                  <Ionicons name="water" size={16} color="white" />
                 </View>
-                <Text className="text-health-muted text-xs mt-1">
-                  {item.type}
-                </Text>
+
+                <View className="flex-1 ml-4 bg-white border border-[#eaecef] rounded-2xl p-4 shadow-xs">
+                  <View className="flex-row items-center justify-between">
+                    <Text className="text-health-text font-bold text-sm flex-1 mr-2" numberOfLines={1}>
+                      {item.location}
+                    </Text>
+                    <View className="bg-[#EBF3FC] px-2 py-1 rounded-md">
+                      <Text className="text-[#2b6485] font-bold text-[10px]">
+                        {item.date}
+                      </Text>
+                    </View>
+                  </View>
+                  <Text className="text-health-muted text-xs mt-1">
+                    {item.type}
+                  </Text>
+                </View>
               </View>
-            </View>
-          ))}
-        </View>
+            ))}
+          </View>
+        ) : null}
 
         {/* Action Buttons */}
         <View className="mt-4 gap-3">
-          <Pressable
-            className="h-13 bg-[#EBF3FC] rounded-2xl items-center justify-center active:opacity-80"
-            onPress={() => {}}
-          >
-            <Text className="text-[#2b6485] text-sm font-bold">
-              Load Older History
-            </Text>
-          </Pressable>
 
           <Pressable
             className="h-13 bg-white border border-health-border rounded-2xl flex-row items-center justify-center gap-2 active:opacity-80"

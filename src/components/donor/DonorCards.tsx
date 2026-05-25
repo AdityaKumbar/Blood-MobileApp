@@ -1,6 +1,7 @@
 import { Switch, Text, View } from "react-native";
 
 import type { DonationHistoryItem, DonorEligibility } from "../../types/donor";
+import { formatDonationType } from "../../utils/donation";
 import { AppButton } from "../ui/AppButton";
 import { Card } from "../ui/Card";
 
@@ -91,14 +92,14 @@ export function DonationTimelineCard({
       <Text className="text-base font-semibold text-health-text">Donation History</Text>
       {loading ? <Text className="mt-2 text-xs text-health-muted">Loading donation timeline...</Text> : null}
       {!loading && history.length === 0 ? (
-        <Text className="mt-2 text-sm text-health-muted">No donation records yet.</Text>
+        <Text className="mt-2 text-sm text-health-muted">No donation till now.</Text>
       ) : null}
       <View className="mt-3 gap-3">
         {history.map((item) => (
           <View key={item.id} className="rounded-xl bg-health-bg px-3 py-3">
             <Text className="text-sm font-semibold text-health-text">{item.location}</Text>
             <Text className="mt-1 text-xs text-health-muted">
-              {new Date(item.donatedAt).toLocaleDateString()} - {item.units} unit(s)
+              {new Date(item.donatedAt).toLocaleDateString()} - {formatDonationType(item.donationType, item.units)}
             </Text>
           </View>
         ))}

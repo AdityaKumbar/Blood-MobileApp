@@ -7,7 +7,9 @@ import { HOME_ROUTES, TAB_ROUTES } from "../../navigation/constants";
 import type { HomeStackScreenProps } from "../../navigation/types";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { fetchEmergencyFeed } from "../../redux/slices/emergencySlice";
+import { NextEligibilityCard } from "../../components/donor/NextEligibilityCard";
 import { fetchDonorProfile, fetchDonationHistory } from "../../redux/slices/donorSlice";
+import { getEligibilityDisplay, resolveLastDonatedAt } from "../../utils/eligibility";
 
 type Props = HomeStackScreenProps<typeof HOME_ROUTES.HOME>;
 
@@ -18,6 +20,14 @@ export function HomeScreen({ navigation }: Props) {
   const donor = useAppSelector((state) => state.donor);
 
   const urgentFeed = useMemo(() => feed.filter((item) => item.status !== "FULFILLED"), [feed]);
+
+  const eligibilityDisplay = useMemo(() => {
+    const lastDonatedAt = resolveLastDonatedAt(
+      donor.lastDonatedAt,
+      donor.history[0]?.donatedAt
+    );
+    return getEligibilityDisplay(donor.eligibility, lastDonatedAt);
+  }, [donor.eligibility, donor.lastDonatedAt, donor.history]);
 
   // Combine live feed with mockup cards as fallback so the visual is exactly like the mockup
   const requestsToShow = useMemo(() => {
@@ -123,7 +133,7 @@ export function HomeScreen({ navigation }: Props) {
             <View className="flex-row items-center bg-[#ffdad6] py-1.5 px-3 rounded-full border border-[#e4bebc]">
               <Ionicons name="water" size={14} color="#b7102a" style={{ marginRight: 4 }} />
               <Text className="text-sm font-bold text-[#b7102a]">
-                {auth.user?.bloodGroup ?? "O+"}
+                {auth.user?.bloodGroup ?? "—"}
               </Text>
             </View>
           </View>
@@ -140,45 +150,17 @@ export function HomeScreen({ navigation }: Props) {
           <Text className="text-[13px] text-white opacity-90 leading-relaxed mb-5">
             Your commitment to donating blood is saving lives every month. You are a community hero.
           </Text>
-          <View className="flex-row items-center justify-around border-t border-white/20 pt-4">
-            <View className="items-center flex-1">
-              <Text className="text-2xl font-extrabold text-white">
-                {donor.history.length > 0 ? donor.history.length : "12"}
-              </Text>
-              <Text className="text-xs text-white opacity-85 mt-0.5">
-                Donations
-              </Text>
-            </View>
-            <View className="w-[1px] h-8 bg-white/25" />
-            <View className="items-center flex-1">
-              <Text className="text-2xl font-extrabold text-white">
-                {donor.history.length > 0 ? donor.history.length * 3 : "36"}
-              </Text>
-              <Text className="text-xs text-white opacity-85 mt-0.5">
-                Lives Saved
-              </Text>
-            </View>
+          <View className="items-center border-t border-white/20 pt-4">
+            <Text className="text-2xl font-extrabold text-white">
+              {donor.history.length}
+            </Text>
+            <Text className="text-xs text-white opacity-85 mt-0.5">
+              Donations
+            </Text>
           </View>
         </View>
 
-        {/* Next Eligibility Card */}
-        <View className="bg-[#2b6485] rounded-3xl p-5 shadow-md">
-          <Text className="text-lg font-bold text-white">
-            Next Eligibility
-          </Text>
-          <Text className="text-[13px] text-white opacity-90 leading-relaxed mt-1 mb-4">
-            You are eligible to donate in 14 days.
-          </Text>
-          
-          <View className="h-[6px] bg-white/20 rounded-full mb-2.5 overflow-hidden">
-            <View className="h-full bg-[#a3d8fe] rounded-full w-[70%]" />
-          </View>
-          
-          <View className="flex-row items-center justify-between">
-            <Text className="text-[11px] text-white/85 font-medium">Last: Oct 12</Text>
-            <Text className="text-[11px] text-white/85 font-medium">Target: Dec 12</Text>
-          </View>
-        </View>
+        <NextEligibilityCard display={eligibilityDisplay} />
 
         {/* Urgent Requests Header */}
         <View className="flex-row items-center justify-between mt-3 mb-1">

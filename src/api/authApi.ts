@@ -34,7 +34,13 @@ function buildDemoAuthResponse(identifier: string): AuthResponse {
 }
 
 function mapBackendAuthResponse(data: {
-  user: { id: string; name: string; email?: string; role: AuthResponse["user"]["role"] };
+  user: {
+    id: string;
+    name: string;
+    email?: string;
+    role: AuthResponse["user"]["role"];
+    bloodGroup?: AuthResponse["user"]["bloodGroup"];
+  };
   accessToken: string | null;
   refreshToken: string | null;
 }): AuthResponse {
@@ -43,7 +49,8 @@ function mapBackendAuthResponse(data: {
       id: data.user.id,
       fullName: data.user.name,
       email: data.user.email,
-      role: data.user.role
+      role: data.user.role,
+      bloodGroup: data.user.bloodGroup || undefined
     },
     tokens: {
       accessToken: data.accessToken ?? "",
@@ -53,7 +60,13 @@ function mapBackendAuthResponse(data: {
 }
 
 type BackendAuthData = {
-  user: { id: string; name: string; email?: string; role: AuthResponse["user"]["role"] };
+  user: {
+    id: string;
+    name: string;
+    email?: string;
+    role: AuthResponse["user"]["role"];
+    bloodGroup?: AuthResponse["user"]["bloodGroup"];
+  };
   accessToken: string | null;
   refreshToken: string | null;
 };

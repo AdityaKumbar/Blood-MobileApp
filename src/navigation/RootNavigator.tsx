@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { LoadingScreen } from "../components/ui/LoadingScreen";
 import { useRealtimeUpdates } from "../hooks/useRealtimeUpdates";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { bootstrapAuth } from "../redux/slices/authSlice";
+import { bootstrapAuth, fetchCurrentUser } from "../redux/slices/authSlice";
 import { ROOT_ROUTES } from "./constants";
 import { AuthStackNavigator } from "./stacks/AuthStackNavigator";
 import { MainTabNavigator } from "./tabs/MainTabNavigator";
@@ -20,6 +20,12 @@ export function RootNavigator() {
   useEffect(() => {
     dispatch(bootstrapAuth());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      void dispatch(fetchCurrentUser());
+    }
+  }, [dispatch, status]);
 
   if (isBootstrapping) {
     return <LoadingScreen label="Preparing your account..." />;

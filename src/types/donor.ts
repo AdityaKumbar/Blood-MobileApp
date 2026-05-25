@@ -1,8 +1,11 @@
+export type DonationType = "WHOLE_BLOOD" | "PLASMA" | "PLATELETS";
+
 export interface DonationHistoryItem {
   id: string;
   donatedAt: string;
   location: string;
   units: number;
+  donationType?: DonationType;
 }
 
 export interface DonorEligibility {
@@ -15,6 +18,7 @@ export interface DonorProfile {
   id: string;
   isRegistered: boolean;
   isAvailable: boolean;
+  lastDonatedAt?: string | null;
   eligibility: DonorEligibility;
   history: DonationHistoryItem[];
 }
