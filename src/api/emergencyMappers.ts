@@ -13,6 +13,14 @@ export interface BackendEmergencyRequest {
   contactNumber?: string;
   createdAt: string;
   updatedAt: string;
+  createdBy?: {
+    _id?: string;
+    name?: string;
+    phone?: string;
+    latitude?: number | null;
+    longitude?: number | null;
+    address?: string;
+  } | null;
 }
 
 export function mapBackendStatus(status: BackendEmergencyRequest["status"]): EmergencyRequestStatus {
@@ -35,6 +43,8 @@ export function mapEmergencyItem(item: BackendEmergencyRequest): EmergencyReques
     status: mapBackendStatus(item.status),
     backendStatus: item.status,
     createdAt: item.createdAt,
-    updatedAt: item.updatedAt
+    updatedAt: item.updatedAt,
+    latitude: item.createdBy?.latitude ?? null,
+    longitude: item.createdBy?.longitude ?? null
   };
 }

@@ -29,3 +29,11 @@ export async function getCurrentUser() {
     role: user.role
   };
 }
+
+export async function updateCurrentUser(payload: UpdateCurrentUserPayload) {
+  const { data } = await apiClient.put<ApiEnvelope<CurrentUserResponse>>(
+    apiPaths.auth.profile,
+    payload
+  );
+  return unwrapApiData(data);
+}

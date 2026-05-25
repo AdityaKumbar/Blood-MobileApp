@@ -111,7 +111,6 @@ export async function register(payload: RegisterPayload): Promise<AuthResponse> 
       password: payload.password,
       role: "DONOR",
       bloodGroup: payload.bloodGroup,
-      phone: payload.phone
     }
   );
   return mapBackendAuthResponse(unwrapApiData(data));

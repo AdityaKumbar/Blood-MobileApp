@@ -23,6 +23,8 @@ export interface EmergencyRequest {
   backendStatus: BackendEmergencyStatus;
   createdAt: string;
   updatedAt: string;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export interface CreateEmergencyRequestPayload {

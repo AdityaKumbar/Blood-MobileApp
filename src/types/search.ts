@@ -21,4 +21,7 @@ export interface SearchResultItem {
   bloodGroups?: BloodGroup[];
   oxygenUnits?: number;
   distanceKm?: number;
+  phone?: string;
+  latitude?: number;
+  longitude?: number;
 }

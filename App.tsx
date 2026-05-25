@@ -13,7 +13,7 @@ import { fetchDonorProfile, fetchDonationHistory } from "./src/redux/slices/dono
 import { fetchNotifications } from "./src/redux/slices/notificationSlice";
 import { setProfileInfo } from "./src/redux/slices/profileSettingsSlice";
 
-type Route = "login" | "signup" | "dashboard" | "map" | "requestDetails" | "schedule" | "history" | "profile" | "notifications" | "editProfile";
+type Route = "login" | "signup" | "dashboard" | "map" | "requestDetails" | "requests" | "history" | "profile" | "notifications" | "editProfile";
 
 const c = {
   bg: "#f7f8fc",
@@ -44,6 +44,12 @@ function AppContent() {
   const [agree, setAgree] = useState(false);
   const [urgentOnly, setUrgentOnly] = useState(false);
 
+  // States for Verified Requests tab
+  const [reqSearchQuery, setReqSearchQuery] = useState("");
+  const [reqFilterType, setReqFilterType] = useState<"all" | "blood" | "oxygen">("all");
+  const [reqFilterUrgency, setReqFilterUrgency] = useState<"all" | "critical">("all");
+  const [reqFilterStatus, setReqFilterStatus] = useState<"all" | "active" | "resolved">("all");
+
   const [loginIdentifier, setLoginIdentifier] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
 
@@ -58,6 +64,142 @@ function AppContent() {
 
   const selectedEmergency = emergency.selectedRequest ?? emergency.feed.find((x) => x.id === selectedEmergencyId) ?? null;
   const urgentFeed = useMemo(() => emergency.feed.filter((item) => item.status !== "FULFILLED"), [emergency.feed]);
+
+  // Combined verified requests from admin/live feed and fallback items
+  const allRequestsList = useMemo(() => {
+    const live = emergency.feed.map((item, idx) => {
+      const isCritical = item.urgency === "CRITICAL" || item.urgency === "HIGH";
+      return {
+        id: item.id,
+        patientName: item.patientName || "Anonymous Patient",
+        bloodGroup: (item.bloodGroup || "O+") as any,
+        unitsRequired: item.unitsRequired || 1,
+        hospital: item.hospital || "City Hospital",
+        urgency: (item.urgency || "MEDIUM") as any,
+        oxygenNeeded: !!item.oxygenNeeded,
+        contactNumber: item.contactNumber || "",
+        status: (item.status || "OPEN") as any,
+        backendStatus: (item.backendStatus || "FORWARDED_TO_APP") as any,
+        createdAt: item.createdAt || new Date().toISOString(),
+        distance: `${(1.2 + idx * 0.8).toFixed(1)} miles away`,
+        liveItem: item as any
+      };
+    });
+
+    const fallbacks = [
+      {
+        id: "mock-r1",
+        patientName: "Sarah Jenkins",
+        bloodGroup: "O+",
+        unitsRequired: 3,
+        hospital: "Central Medical Center",
+        urgency: "CRITICAL",
+        oxygenNeeded: false,
+        contactNumber: "+15550199",
+        status: "OPEN",
+        backendStatus: "FORWARDED_TO_APP",
+        createdAt: new Date(Date.now() - 3600000 * 2).toISOString(), // 2 hours ago
+        distance: "2.4 miles away",
+        liveItem: null as any
+      },
+      {
+        id: "mock-r2",
+        patientName: "Robert Chen",
+        bloodGroup: "A-",
+        unitsRequired: 2,
+        hospital: "St. Jude Trauma Care",
+        urgency: "HIGH",
+        oxygenNeeded: false,
+        contactNumber: "+15550244",
+        status: "OPEN",
+        backendStatus: "FORWARDED_TO_APP",
+        createdAt: new Date(Date.now() - 3600000 * 5).toISOString(), // 5 hours ago
+        distance: "5.1 miles away",
+        liveItem: null as any
+      },
+      {
+        id: "mock-r3",
+        patientName: "Maria Rodriguez",
+        bloodGroup: "B+",
+        unitsRequired: 5,
+        hospital: "Metro Pulmonary Clinic",
+        urgency: "MEDIUM",
+        oxygenNeeded: true, // Oxygen Request!
+        contactNumber: "+15550388",
+        status: "OPEN",
+        backendStatus: "FORWARDED_TO_APP",
+        createdAt: new Date(Date.now() - 3600000 * 12).toISOString(), // 12 hours ago
+        distance: "4.8 miles away",
+        liveItem: null as any
+      },
+      {
+        id: "mock-r4",
+        patientName: "David Kim",
+        bloodGroup: "AB-",
+        unitsRequired: 1,
+        hospital: "City Red Cross",
+        urgency: "LOW",
+        oxygenNeeded: false,
+        contactNumber: "+15550422",
+        status: "FULFILLED", // Resolved!
+        backendStatus: "RESOLVED",
+        createdAt: new Date(Date.now() - 3600000 * 24).toISOString(), // 1 day ago
+        distance: "0.8 miles away",
+        liveItem: null as any
+      },
+      {
+        id: "mock-r5",
+        patientName: "Elena Rostova",
+        bloodGroup: "O-",
+        unitsRequired: 10,
+        hospital: "General Hospital",
+        urgency: "CRITICAL",
+        oxygenNeeded: true, // Oxygen Request!
+        contactNumber: "+15550577",
+        status: "FULFILLED", // Resolved!
+        backendStatus: "RESOLVED",
+        createdAt: new Date(Date.now() - 3600000 * 36).toISOString(), // 1.5 days ago
+        distance: "2.1 miles away",
+        liveItem: null as any
+      }
+    ];
+
+    const combined = [...live];
+    for (const fb of fallbacks) {
+      if (!combined.some(x => x.id === fb.id || (x.hospital === fb.hospital && x.patientName === fb.patientName))) {
+        combined.push(fb);
+      }
+    }
+    return combined;
+  }, [emergency.feed]);
+
+  const filteredRequests = useMemo(() => {
+    return allRequestsList.filter((item) => {
+      // 1. Search Query filter
+      if (reqSearchQuery.trim()) {
+        const query = reqSearchQuery.toLowerCase();
+        const matchesHospital = item.hospital.toLowerCase().includes(query);
+        const matchesPatient = item.patientName.toLowerCase().includes(query);
+        const matchesBlood = item.bloodGroup.toLowerCase().includes(query);
+        if (!matchesHospital && !matchesPatient && !matchesBlood) {
+          return false;
+        }
+      }
+
+      // 2. Type filter
+      if (reqFilterType === "blood" && item.oxygenNeeded) return false;
+      if (reqFilterType === "oxygen" && !item.oxygenNeeded) return false;
+
+      // 3. Urgency filter
+      if (reqFilterUrgency === "critical" && item.urgency !== "CRITICAL") return false;
+
+      // 4. Status filter
+      if (reqFilterStatus === "active" && (item.status === "FULFILLED" || item.status === "CANCELLED")) return false;
+      if (reqFilterStatus === "resolved" && item.status !== "FULFILLED") return false;
+
+      return true;
+    });
+  }, [allRequestsList, reqSearchQuery, reqFilterType, reqFilterUrgency, reqFilterStatus]);
 
   // Combine live feed with mockup cards as fallback so the visual is exactly like the image
   const requestsToShow = useMemo(() => {
@@ -642,17 +784,311 @@ function AppContent() {
           </View>
         )}
 
-        {!isAuth && route === "schedule" && (
+        {!isAuth && route === "requests" && (
           <View style={s.stack}>
-            <View style={s.profileCard}>
-              <Ionicons name="calendar-outline" size={48} color="#b7102a" style={{ alignSelf: "center", marginBottom: 12 }} />
-              <Text style={[s.h1, { textAlign: "center" }]}>Schedule Donation</Text>
-              <Text style={[s.muted, { textAlign: "center" }]}>Select a convenient donation slot to save lives.</Text>
-              <Text style={[s.small, { marginTop: 12, textAlign: "center" }]}>Current profile status: {donor.profileStatus}</Text>
-              <Pressable style={[s.primaryButton, { marginTop: 16 }]} onPress={() => setRoute("dashboard")}>
-                <Text style={s.primaryButtonText}>Return Home</Text>
-              </Pressable>
+            {/* Header info bar */}
+            <View style={{ backgroundColor: "#F0F3FF", borderLeftWidth: 4, borderLeftColor: "#2b6485", padding: 14, borderRadius: 12 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                <Ionicons name="shield-checkmark" size={20} color="#2b6485" />
+                <Text style={{ fontWeight: "800", color: "#2b6485", fontSize: 14 }}>
+                  VERIFIED BY ADMIN
+                </Text>
+              </View>
+              <Text style={{ color: "#5b403f", fontSize: 13, marginTop: 4, lineHeight: 18 }}>
+                These urgent requests are forwarded by Lifestream Admin and represent active critical cases in the system.
+              </Text>
             </View>
+
+            {/* Search Input */}
+            <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: "#fff", borderWidth: 1, borderColor: "#eaecef", borderRadius: 12, paddingHorizontal: 12, height: 46 }}>
+              <Ionicons name="search-outline" size={20} color="#8f6f6e" style={{ marginRight: 8 }} />
+              <TextInput
+                placeholder="Search hospital, patient, or blood group..."
+                placeholderTextColor="#8f6f6e"
+                value={reqSearchQuery}
+                onChangeText={setReqSearchQuery}
+                style={{ flex: 1, height: "100%", color: "#001b3c", fontSize: 14 }}
+              />
+              {reqSearchQuery ? (
+                <Pressable onPress={() => setReqSearchQuery("")}>
+                  <Ionicons name="close-circle" size={18} color="#8f6f6e" />
+                </Pressable>
+              ) : null}
+            </View>
+
+            {/* Quick Filters Group */}
+            <View style={{ gap: 8 }}>
+              {/* Type selector (All, Blood, Oxygen) */}
+              <View style={{ flexDirection: "row", gap: 8 }}>
+                {(["all", "blood", "oxygen"] as const).map((t) => (
+                  <Pressable
+                    key={t}
+                    onPress={() => setReqFilterType(t)}
+                    style={{
+                      flex: 1,
+                      height: 38,
+                      borderRadius: 10,
+                      backgroundColor: reqFilterType === t ? "#2b6485" : "#fff",
+                      borderWidth: 1,
+                      borderColor: reqFilterType === t ? "#2b6485" : "#eaecef",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexDirection: "row",
+                      gap: 4
+                    }}
+                  >
+                    {t === "blood" && <Ionicons name="water" size={14} color={reqFilterType === t ? "#fff" : "#b7102a"} />}
+                    {t === "oxygen" && <Ionicons name="pulse" size={14} color={reqFilterType === t ? "#fff" : "#2b6485"} />}
+                    <Text style={{
+                      fontSize: 12,
+                      fontWeight: "700",
+                      color: reqFilterType === t ? "#fff" : "#5b403f",
+                      textTransform: "capitalize"
+                    }}>
+                      {t}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+
+              {/* Status and Urgency filter buttons */}
+              <View style={{ flexDirection: "row", gap: 8 }}>
+                {/* Active / Resolved tabs */}
+                <View style={{ flex: 2, flexDirection: "row", backgroundColor: "#fff", borderWidth: 1, borderColor: "#eaecef", borderRadius: 10, padding: 3 }}>
+                  {(["all", "active", "resolved"] as const).map((sState) => (
+                    <Pressable
+                      key={sState}
+                      onPress={() => setReqFilterStatus(sState)}
+                      style={{
+                        flex: 1,
+                        paddingVertical: 6,
+                        borderRadius: 8,
+                        backgroundColor: reqFilterStatus === sState ? "#EBF3FC" : "transparent",
+                        alignItems: "center"
+                      }}
+                    >
+                      <Text style={{
+                        fontSize: 11,
+                        fontWeight: "700",
+                        color: reqFilterStatus === sState ? "#005fa2" : "#5b403f",
+                        textTransform: "capitalize"
+                      }}>
+                        {sState}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+
+                {/* Critical Only Toggle */}
+                <Pressable
+                  onPress={() => setReqFilterUrgency(reqFilterUrgency === "all" ? "critical" : "all")}
+                  style={{
+                    flex: 1,
+                    borderRadius: 10,
+                    backgroundColor: reqFilterUrgency === "critical" ? "#FFF0F0" : "#fff",
+                    borderWidth: 1,
+                    borderColor: reqFilterUrgency === "critical" ? "#FDCACA" : "#eaecef",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexDirection: "row",
+                    gap: 4
+                  }}
+                >
+                  <Ionicons name="warning" size={14} color="#b7102a" />
+                  <Text style={{
+                    fontSize: 11,
+                    fontWeight: "700",
+                    color: "#b7102a"
+                  }}>
+                    {reqFilterUrgency === "critical" ? "Critical ✅" : "Critical Only"}
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+
+            {/* Requests List */}
+            {filteredRequests.length === 0 ? (
+              <View style={{ backgroundColor: "#fff", borderRadius: 16, padding: 32, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "#eaecef", gap: 12 }}>
+                <Ionicons name="document-text-outline" size={48} color="#8f6f6e" />
+                <Text style={{ fontSize: 16, fontWeight: "700", color: "#001b3c" }}>No requests found</Text>
+                <Text style={{ fontSize: 13, color: "#8f6f6e", textAlign: "center", lineHeight: 18 }}>
+                  No admin forwarded requests match the current filters. Try resetting search or type options.
+                </Text>
+              </View>
+            ) : (
+              filteredRequests.map((item) => {
+                const isCritical = item.urgency === "CRITICAL" || item.urgency === "HIGH";
+                const isResolved = item.status === "FULFILLED";
+                const borderLeftColor = isResolved ? "#8f8f8f" : item.oxygenNeeded ? "#2b6485" : "#b7102a";
+                
+                return (
+                  <View
+                    key={item.id}
+                    style={{
+                      backgroundColor: "#fff",
+                      borderRadius: 16,
+                      padding: 16,
+                      borderWidth: 1,
+                      borderColor: "#eaecef",
+                      borderLeftWidth: 5,
+                      borderLeftColor,
+                      shadowColor: "#000",
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.03,
+                      shadowRadius: 6,
+                      elevation: 2,
+                      gap: 12
+                    }}
+                  >
+                    {/* Header: Badges & Distance */}
+                    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                      <View style={{ flexDirection: "row", gap: 6, alignItems: "center" }}>
+                        {/* Urgency Badge */}
+                        <View style={{
+                          backgroundColor: isResolved ? "#F3F4F6" : isCritical ? "#FFF0F0" : "#EBF3FC",
+                          borderColor: isResolved ? "#E5E7EB" : isCritical ? "#FDCACA" : "#CBE2FB",
+                          borderWidth: 1,
+                          paddingVertical: 3,
+                          paddingHorizontal: 8,
+                          borderRadius: 6,
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: 4
+                        }}>
+                          <Ionicons
+                            name={isResolved ? "checkmark-circle" : isCritical ? "warning" : "information-circle"}
+                            size={12}
+                            color={isResolved ? "#4B5563" : isCritical ? "#b7102a" : "#2b6485"}
+                          />
+                          <Text style={{
+                            fontSize: 10,
+                            fontWeight: "800",
+                            color: isResolved ? "#4B5563" : isCritical ? "#b7102a" : "#2b6485",
+                            textTransform: "uppercase"
+                          }}>
+                            {isResolved ? "RESOLVED" : item.urgency}
+                          </Text>
+                        </View>
+
+                        {/* Request Type Badge */}
+                        <View style={{
+                          backgroundColor: item.oxygenNeeded ? "#E6FFFA" : "#FFF5F5",
+                          borderColor: item.oxygenNeeded ? "#B2F5EA" : "#FEB2B2",
+                          borderWidth: 1,
+                          paddingVertical: 3,
+                          paddingHorizontal: 8,
+                          borderRadius: 6
+                        }}>
+                          <Text style={{
+                            fontSize: 10,
+                            fontWeight: "800",
+                            color: item.oxygenNeeded ? "#0d9488" : "#e53e3e"
+                          }}>
+                            {item.oxygenNeeded ? "OXYGEN" : "BLOOD"}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <Text style={{ fontSize: 12, color: "#8f6f6e", fontWeight: "600" }}>
+                        {item.distance}
+                      </Text>
+                    </View>
+
+                    {/* Middle: Badge & Info */}
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                      {/* Left Badge */}
+                      <View style={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: 12,
+                        backgroundColor: isResolved ? "#F3F4F6" : item.oxygenNeeded ? "#EBF3FC" : "#FFF0F0",
+                        alignItems: "center",
+                        justifyContent: "center"
+                      }}>
+                        {item.oxygenNeeded ? (
+                          <Ionicons name="pulse" size={24} color={isResolved ? "#9CA3AF" : "#2b6485"} />
+                        ) : (
+                          <Text style={{
+                            fontSize: 18,
+                            fontWeight: "800",
+                            color: isResolved ? "#9CA3AF" : "#b7102a"
+                          }}>
+                            {item.bloodGroup}
+                          </Text>
+                        )}
+                      </View>
+
+                      {/* Details */}
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontSize: 16, fontWeight: "800", color: "#001b3c" }} numberOfLines={1}>
+                          {item.hospital}
+                        </Text>
+                        <Text style={{ fontSize: 12, color: "#5b403f", marginTop: 2 }}>
+                          Patient: {item.patientName} • Required: {item.unitsRequired} {item.oxygenNeeded ? "Liters" : "Units"}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* Footer: Date & Actions */}
+                    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderTopWidth: 1, borderTopColor: "#f1f3f6", paddingTop: 10, marginTop: 2 }}>
+                      <Text style={{ fontSize: 11, color: "#8f6f6e" }}>
+                        Forwarded: {new Date(item.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                      </Text>
+
+                      <View style={{ flexDirection: "row", gap: 8 }}>
+                        {item.contactNumber ? (
+                          <Pressable
+                            onPress={() => Alert.alert("Contact Info", `Call patient's hospital contact: ${item.contactNumber}`)}
+                            style={{
+                              width: 36,
+                              height: 36,
+                              borderRadius: 10,
+                              borderWidth: 1,
+                              borderColor: "#eaecef",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              backgroundColor: "#fff"
+                            }}
+                          >
+                            <Ionicons name="call" size={16} color="#2b6485" />
+                          </Pressable>
+                        ) : null}
+
+                        <Pressable
+                          onPress={() => {
+                            if (item.liveItem) {
+                              setSelectedEmergencyId(item.liveItem.id);
+                              setRoute("requestDetails");
+                            } else {
+                              Alert.alert("Mock Request Info", `This is a sample forwarded request from ${item.hospital}.`);
+                            }
+                          }}
+                          style={{
+                            height: 36,
+                            paddingHorizontal: 14,
+                            borderRadius: 10,
+                            backgroundColor: isResolved ? "#E5E7EB" : "#b7102a",
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 4
+                          }}
+                        >
+                          <Text style={{
+                            color: isResolved ? "#4B5563" : "#fff",
+                            fontSize: 12,
+                            fontWeight: "700"
+                          }}>
+                            {isResolved ? "View Logs" : "View Details"}
+                          </Text>
+                          <Ionicons name="arrow-forward" size={12} color={isResolved ? "#4B5563" : "#fff"} />
+                        </Pressable>
+                      </View>
+                    </View>
+                  </View>
+                );
+              })
+            )}
           </View>
         )}
 
@@ -868,7 +1304,7 @@ function AppContent() {
         <View style={s.tabs}>
           <TabItem icon="home" label="Home" active={route === "dashboard"} onPress={() => setRoute("dashboard")} />
           <TabItem icon="map" label="Map" active={route === "map"} onPress={() => setRoute("map")} />
-          <TabItem icon="calendar" label="Schedule" active={route === "schedule"} onPress={() => setRoute("schedule")} />
+          <TabItem icon="list" label="Requests" active={route === "requests"} onPress={() => setRoute("requests")} />
           <TabItem icon="person" label="Profile" active={route === "profile" || route === "history"} onPress={() => setRoute("profile")} />
         </View>
       )}
@@ -893,7 +1329,9 @@ function title(r: Route) {
         ? "Donation History"
         : r === "editProfile"
           ? "Edit Profile"
-          : "LifeStream";
+          : r === "requests"
+            ? "Forwarded Requests"
+            : "LifeStream";
 }
 
 function Field({ label, value, setValue, secure = false }: { label: string; value: string; setValue: (v: string) => void; secure?: boolean }) {
