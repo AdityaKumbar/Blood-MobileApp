@@ -103,7 +103,7 @@ export function EditProfileScreen({ navigation }: Props) {
           </Pressable>
 
           <Text className="mt-4 text-xs text-health-muted text-center leading-relaxed">
-            Tap the camera icon or button to select an image from your device's photo library.
+            Tap the camera icon or button to select an image from your device&apos;s photo library.
           </Text>
         </View>
 

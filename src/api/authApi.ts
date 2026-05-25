@@ -23,7 +23,8 @@ function buildDemoAuthResponse(identifier: string): AuthResponse {
       fullName: "Demo User",
       email: isEmail ? identifier : DEMO_LOGIN_IDENTIFIER,
       phone: isEmail ? DEMO_LOGIN_PHONE : identifier,
-      role: "DONOR"
+      role: "DONOR",
+      bloodGroup: "O+"
     },
     tokens: {
       accessToken: "demo-access-token",
@@ -33,7 +34,7 @@ function buildDemoAuthResponse(identifier: string): AuthResponse {
 }
 
 function mapBackendAuthResponse(data: {
-  user: { id: string; name: string; email?: string; role: AuthResponse["user"]["role"] };
+  user: { id: string; name: string; email?: string; role: AuthResponse["user"]["role"]; bloodGroup?: string };
   accessToken: string | null;
   refreshToken: string | null;
 }): AuthResponse {
@@ -42,7 +43,8 @@ function mapBackendAuthResponse(data: {
       id: data.user.id,
       fullName: data.user.name,
       email: data.user.email,
-      role: data.user.role
+      role: data.user.role,
+      bloodGroup: data.user.bloodGroup as any
     },
     tokens: {
       accessToken: data.accessToken ?? "",
@@ -52,7 +54,7 @@ function mapBackendAuthResponse(data: {
 }
 
 type BackendAuthData = {
-  user: { id: string; name: string; email?: string; role: AuthResponse["user"]["role"] };
+  user: { id: string; name: string; email?: string; role: AuthResponse["user"]["role"]; bloodGroup?: string };
   accessToken: string | null;
   refreshToken: string | null;
 };
@@ -91,7 +93,8 @@ export async function register(payload: RegisterPayload): Promise<AuthResponse> 
         fullName: payload.fullName,
         email: payload.email,
         phone: payload.phone,
-        role: "DONOR"
+        role: "DONOR",
+        bloodGroup: payload.bloodGroup
       },
       tokens: {
         accessToken: "demo-access-token",
@@ -106,7 +109,9 @@ export async function register(payload: RegisterPayload): Promise<AuthResponse> 
       name: payload.fullName,
       email: payload.email,
       password: payload.password,
-      role: "DONOR"
+      role: "DONOR",
+      bloodGroup: payload.bloodGroup,
+      phone: payload.phone
     }
   );
   return mapBackendAuthResponse(unwrapApiData(data));

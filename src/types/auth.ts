@@ -9,6 +9,7 @@ export interface AuthUser {
   email?: string;
   phone?: string;
   role: UserRole;
+  bloodGroup?: BloodGroup;
 }
 
 export interface AuthTokens {

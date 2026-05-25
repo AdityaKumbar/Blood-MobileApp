@@ -98,7 +98,7 @@ export function ProfileScreen({ navigation }: Props) {
             {/* Blood Type Badge Overlay */}
             <View className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-brand-600 border-2 border-white items-center justify-center shadow-sm">
               <Text className="text-white text-xs font-bold">
-                {(user as any)?.bloodGroup || "O+"}
+                {user?.bloodGroup || "O+"}
               </Text>
             </View>
           </View>

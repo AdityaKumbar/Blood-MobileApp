@@ -123,7 +123,7 @@ export function HomeScreen({ navigation }: Props) {
             <View className="flex-row items-center bg-[#ffdad6] py-1.5 px-3 rounded-full border border-[#e4bebc]">
               <Ionicons name="water" size={14} color="#b7102a" style={{ marginRight: 4 }} />
               <Text className="text-sm font-bold text-[#b7102a]">
-                {(auth.user as any)?.bloodGroup ?? "O+"}
+                {auth.user?.bloodGroup ?? "O+"}
               </Text>
             </View>
           </View>

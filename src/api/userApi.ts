@@ -8,6 +8,7 @@ interface CurrentUserResponse {
   name: string;
   email?: string;
   role: AuthUser["role"];
+  bloodGroup?: string;
 }
 
 export async function getCurrentUser() {
@@ -17,6 +18,7 @@ export async function getCurrentUser() {
     id: user.id,
     fullName: user.name,
     email: user.email,
-    role: user.role
+    role: user.role,
+    bloodGroup: user.bloodGroup as any
   };
 }

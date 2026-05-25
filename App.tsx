@@ -302,7 +302,7 @@ function AppContent() {
                 <Text style={s.bloodTypeLabel}>Your Blood Type</Text>
                 <View style={s.bloodTypeBadge}>
                   <Ionicons name="water" size={14} color="#b7102a" style={{ marginRight: 4 }} />
-                  <Text style={s.bloodTypeBadgeText}>{(auth.user as any)?.bloodGroup ?? bloodGroup}</Text>
+                  <Text style={s.bloodTypeBadgeText}>{auth.user?.bloodGroup ?? bloodGroup}</Text>
                 </View>
               </View>
             </View>
@@ -633,7 +633,7 @@ function AppContent() {
                 {/* Blood Type Badge Overlay */}
                 <View style={s.mockBloodBadge}>
                   <Text style={s.mockBloodBadgeText}>
-                    {(auth.user as any)?.bloodGroup || "O+"}
+                    {auth.user?.bloodGroup || "O+"}
                   </Text>
                 </View>
               </View>

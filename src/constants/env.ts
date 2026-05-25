@@ -1,4 +1,5 @@
 import Constants from "expo-constants";
+import { Platform } from "react-native";
 
 declare const process: {
   env: Record<string, string | undefined>;
@@ -17,6 +18,14 @@ function getExpoDevHost(): string | null {
   return host || null;
 }
 
+function getPlatformLoopbackHost(): string {
+  if (Platform.OS === "android") {
+    // Android emulator cannot reach host machine via localhost.
+    return "10.0.2.2";
+  }
+  return "localhost";
+}
+
 function resolveRuntimeUrl(url: string): string {
   try {
     const parsed = new URL(url);
@@ -26,11 +35,9 @@ function resolveRuntimeUrl(url: string): string {
     }
 
     const expoDevHost = getExpoDevHost();
-    if (!expoDevHost) {
-      return url;
-    }
+    const runtimeHost = expoDevHost || getPlatformLoopbackHost();
 
-    parsed.hostname = expoDevHost;
+    parsed.hostname = runtimeHost;
     return parsed.toString().replace(/\/$/, "");
   } catch {
     return url;
