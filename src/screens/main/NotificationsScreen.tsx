@@ -7,6 +7,7 @@ import { AppButton } from "../../components/ui/AppButton";
 import { Card } from "../../components/ui/Card";
 import { InlineError } from "../../components/ui/InlineError";
 import { Screen } from "../../components/ui/Screen";
+import { SectionHeader } from "../../components/ui/SectionHeader";
 import { NOTIFICATION_ROUTES } from "../../navigation/constants";
 import type { NotificationsStackScreenProps } from "../../navigation/types";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
@@ -29,19 +30,16 @@ export function NotificationsScreen({ navigation }: Props) {
 
   return (
     <Screen>
-      <View className="rounded-3xl bg-health-surface p-5">
-        <View className="flex-row items-center justify-between">
-          <Text className="text-2xl font-bold text-health-text">Notifications</Text>
-          <Ionicons name="notifications-outline" size={20} color="#0F172A" />
-        </View>
-        <Text className="mt-2 text-sm text-health-muted">Alerts, updates, and response activity.</Text>
-        <Text className="mt-3 text-xs uppercase tracking-wide text-health-muted">Unread: {unreadCount}</Text>
+      <SectionHeader title="Notification Center" subtitle="Priority inbox for emergency updates." />
+      <View className="mb-1 mt-2 flex-row items-center justify-between px-1">
+        <Text className="text-xs uppercase tracking-wide text-health-muted">Unread: {unreadCount}</Text>
+        <Ionicons name="notifications-outline" size={18} color="#001B3C" />
       </View>
       {error ? <InlineError message={error} /> : null}
 
       <View className="mb-3 mt-3">
         <AppButton
-          label="Mark All as Read"
+          label="Mark All Read"
           variant="secondary"
           loading={updateStatus === "loading"}
           onPress={() => {
@@ -60,7 +58,7 @@ export function NotificationsScreen({ navigation }: Props) {
         <FlatList
           data={items}
           keyExtractor={(item) => item.id}
-          contentContainerClassName="gap-3 pb-8"
+          contentContainerClassName="gap-3 pb-10"
           refreshControl={
             <RefreshControl
               refreshing={fetchStatus === "loading"}

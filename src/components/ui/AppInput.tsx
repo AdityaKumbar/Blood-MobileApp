@@ -57,13 +57,13 @@ export function AppInput({
 
   return (
     <View className={`mb-4 ${containerClassName}`}>
-      <Text className="mb-2 text-sm font-medium text-health-text">{label}</Text>
+      <Text className="mb-2 text-xs font-semibold uppercase tracking-wide text-health-muted">{label}</Text>
       <View className="relative">
         <TextInput
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
-          placeholderTextColor="#64748b"
+          placeholderTextColor="#8f6f6e"
           secureTextEntry={isSecure}
           keyboardType={keyboardType}
           autoCapitalize={resolvedAutoCapitalize}

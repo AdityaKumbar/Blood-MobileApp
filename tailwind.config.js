@@ -6,25 +6,25 @@ module.exports = {
     extend: {
       colors: {
         brand: {
-          50: "#fff1f5",
-          100: "#ffe4ec",
-          300: "#fda4ba",
-          500: "#f43f6b",
-          600: "#e11d48",
-          700: "#be123c"
+          50: "#ffdad8",
+          100: "#ffb3b1",
+          300: "#db313f",
+          500: "#c61f35",
+          600: "#b7102a",
+          700: "#92001c"
         },
         health: {
-          bg: "#eceff3",
+          bg: "#f9f9ff",
           surface: "#ffffff",
-          surfaceSoft: "#f8fafc",
-          text: "#0f172a",
-          muted: "#475569",
-          border: "#dce2ea",
-          accent: "#e11d48",
-          accentDark: "#be123c",
-          success: "#059669",
-          warning: "#ea580c",
-          danger: "#e11d48"
+          surfaceSoft: "#f0f3ff",
+          text: "#001b3c",
+          muted: "#5b403f",
+          border: "#e4bebc",
+          accent: "#2b6485",
+          accentDark: "#064c6b",
+          success: "#336366",
+          warning: "#ba1a1a",
+          danger: "#b7102a"
         }
       }
     }

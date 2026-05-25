@@ -43,7 +43,7 @@ export function LoginScreen({ navigation }: Props) {
   return (
     <AuthShell
       title="Welcome Back"
-      subtitle="Sign in to respond quickly to blood and oxygen requests in your area."
+      subtitle="Log in to continue life-saving response operations."
       footer={
         <AuthFooterLink
           prompt="No account yet?"
@@ -86,7 +86,7 @@ export function LoginScreen({ navigation }: Props) {
         </Pressable>
       </View>
 
-      <AppButton label="Sign In" onPress={handleSubmit} loading={isSubmitting} />
+      <AppButton label="Login" onPress={handleSubmit} loading={isSubmitting} />
     </AuthShell>
   );
 }

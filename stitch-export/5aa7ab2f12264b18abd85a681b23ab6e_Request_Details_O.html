@@ -1,0 +1,226 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport">
+<title>LifeStream - Request Details</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-highest": "#d5e3ff",
+                        "error": "#ba1a1a",
+                        "on-background": "#001b3c",
+                        "surface-variant": "#d5e3ff",
+                        "tertiary-fixed-dim": "#9ecfd1",
+                        "primary-container": "#db313f",
+                        "secondary-fixed": "#c7e7ff",
+                        "on-primary-fixed-variant": "#92001c",
+                        "secondary": "#2b6485",
+                        "surface-container": "#e7eeff",
+                        "inverse-primary": "#ffb3b1",
+                        "on-primary": "#ffffff",
+                        "surface-bright": "#f9f9ff",
+                        "surface-tint": "#bb152c",
+                        "surface-container-low": "#f0f3ff",
+                        "on-error": "#ffffff",
+                        "inverse-on-surface": "#ecf1ff",
+                        "surface-dim": "#c8dbff",
+                        "tertiary": "#336366",
+                        "tertiary-container": "#4c7c7f",
+                        "on-surface": "#001b3c",
+                        "background": "#f9f9ff",
+                        "secondary-fixed-dim": "#98cdf2",
+                        "on-primary-container": "#fffbff",
+                        "tertiary-fixed": "#b9ecee",
+                        "primary-fixed-dim": "#ffb3b1",
+                        "error-container": "#ffdad6",
+                        "outline-variant": "#e4bebc",
+                        "secondary-container": "#a3d8fe",
+                        "on-tertiary-container": "#f2ffff",
+                        "on-surface-variant": "#5b403f",
+                        "outline": "#8f6f6e",
+                        "surface": "#f9f9ff",
+                        "on-tertiary-fixed-variant": "#1a4e50",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-high": "#dee8ff",
+                        "on-tertiary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "inverse-surface": "#183153",
+                        "on-primary-fixed": "#410007",
+                        "on-secondary-container": "#255f80",
+                        "primary-fixed": "#ffdad8",
+                        "on-secondary": "#ffffff",
+                        "primary": "#b7102a",
+                        "on-tertiary-fixed": "#002021",
+                        "on-secondary-fixed-variant": "#064c6b",
+                        "on-secondary-fixed": "#001e2e"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xl": "32px",
+                        "xs": "4px",
+                        "gutter": "16px",
+                        "margin-mobile": "20px",
+                        "md": "16px",
+                        "base": "4px",
+                        "sm": "8px",
+                        "lg": "24px",
+                        "margin-desktop": "40px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "button": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["26px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "button": ["16px", {"lineHeight": "20px", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #f9f9ff;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .bento-card {
+            transition: transform 0.2s ease;
+        }
+        .bento-card:active {
+            transform: scale(0.98);
+        }
+        .urgent-pulse {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.8; }
+            100% { opacity: 1; }
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 w-full z-50 bg-surface shadow-sm flex justify-between items-center px-margin-mobile h-16">
+<div class="flex items-center gap-4">
+<button class="active:scale-95 transition-transform text-on-surface-variant">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="font-headline-sm text-headline-sm text-primary">Request Details</h1>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary">notifications</span>
+</div>
+</header>
+<main class="pt-20 pb-32 px-margin-mobile max-w-2xl mx-auto space-y-lg">
+<!-- Urgent Banner -->
+<section class="urgent-pulse bg-primary-container text-on-primary-container rounded-xl p-md shadow-sm flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">warning</span>
+<span class="font-button text-button">URGENT - O+ Needed</span>
+</section>
+<!-- Main Content Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<!-- Hospital Card -->
+<section class="bg-surface-container-lowest rounded-xl p-md shadow-[0px_4px_12px_rgba(29,53,87,0.05)] col-span-1 md:col-span-2">
+<div class="flex justify-between items-start mb-sm">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">City Hospital</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">1.2 miles away • Open 24/7</p>
+</div>
+<button class="bg-secondary-container text-on-secondary-container h-12 w-12 rounded-full flex items-center justify-center active:scale-90 transition-transform">
+<span class="material-symbols-outlined">call</span>
+</button>
+</div>
+<div class="flex items-start gap-2 mt-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">location_on</span>
+<p class="font-body-sm text-body-sm">450 Medical Center Drive, West District, Metro City 10293</p>
+</div>
+</section>
+<!-- Case Context Card -->
+<section class="bg-surface-container-low rounded-xl p-md col-span-1">
+<h3 class="font-label-md text-label-md text-on-surface-variant mb-xs">CASE CONTEXT</h3>
+<p class="font-body-md text-body-md text-on-surface">Emergency Surgery - A patient requires O+ blood for a scheduled cardiac procedure.</p>
+</section>
+<!-- Inventory Status Card -->
+<section class="bg-error-container rounded-xl p-md col-span-1 flex flex-col justify-between">
+<div>
+<h3 class="font-label-md text-label-md text-on-error-container mb-xs">INVENTORY STATUS</h3>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">error</span>
+<span class="font-headline-sm text-headline-sm text-error">Critical Shortage</span>
+</div>
+</div>
+<div class="w-full bg-on-error h-2 rounded-full mt-md relative overflow-hidden">
+<div class="absolute left-0 top-0 h-full bg-primary w-[15%] rounded-full"></div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-xs">Only 1 unit remaining in stock.</p>
+</section>
+<!-- Map Preview -->
+<section class="relative h-48 rounded-xl overflow-hidden shadow-sm col-span-1 md:col-span-2">
+<img class="w-full h-full object-cover" data-alt="A clean, minimalist digital map view showing a medical district with a prominent red pin marking a hospital location. The map uses a sophisticated color palette of soft blues and greys, aligning with a professional healthcare UI. The aesthetic is modern and high-contrast, designed to highlight geographical proximity clearly in a medical emergency context." data-location="Metro City Hospital District" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD5eatmMLXfg57af5zF0NDAScxqP5uc-dnT2hXwSCZDc0FMJAnKGkY5NSnS-G2szSh1yFpq8mCZHioNGmuahw2wATQhaMZa75mYOxrFmxFPmOpL6ej3pctCOB7E_BoiogfHi_enpSlvmJ_VbrBlxHQVRbU8CvJE9KWwm0ceYfhBAZunyoW1b9aM3aBl-gwbGjWqdJKdxYHhllpetzQxVJr-jMGVEk3fQ6nsW5RdY-v6sWaC1GXZcMQT4Hmadr7fu3n2uJcuyR3qv40">
+<div class="absolute bottom-3 left-3 bg-surface-container-lowest/90 backdrop-blur-sm px-sm py-xs rounded-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-sm">navigation</span>
+<span class="font-label-md text-label-md text-on-surface">Navigate to Site</span>
+</div>
+</section>
+</div>
+<!-- Call to Action Section -->
+<div class="fixed bottom-0 left-0 w-full bg-surface/80 backdrop-blur-md p-margin-mobile flex flex-col gap-sm">
+<button class="w-full h-14 bg-primary text-on-primary rounded-xl font-button text-button shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">favorite</span>
+                Donate Now
+            </button>
+<button class="w-full h-14 bg-surface-container-high text-on-secondary-container border border-outline-variant rounded-xl font-button text-button active:scale-95 transition-all">
+                Get Directions
+            </button>
+</div>
+</main>
+<!-- Bottom Navigation (Hidden on focused task as per mandate for task-focused pages, but showing here for context of the app shell) -->
+<!-- The prompt implies a focused view, so we follow the 'Task-Focused' suppression rule for the global shell to prioritize the content canvas, as instructed in the "Shell Visibility & Relevance" section. -->
+<script>
+        // Micro-interaction for the call button
+        document.querySelector('button .material-symbols-outlined:contains("call")')?.parentElement.addEventListener('click', () => {
+            console.log('Initiating emergency call protocol...');
+        });
+
+        // Simple scale effect on interaction
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('touchstart', () => btn.classList.add('scale-95'));
+            btn.addEventListener('touchend', () => btn.classList.remove('scale-95'));
+        });
+    </script>
+</body></html>

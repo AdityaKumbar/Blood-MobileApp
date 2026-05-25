@@ -26,15 +26,15 @@ export const AppButton = memo(function AppButton({
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={{ disabled: isDisabled, busy: loading }}
-      className={`h-12 items-center justify-center rounded-xl ${
-        isSecondary ? "border border-health-border bg-health-surface" : "bg-brand-600"
+      className={`h-14 flex-row items-center justify-center rounded-full ${
+        isSecondary ? "border border-health-border bg-health-surfaceSoft" : "bg-brand-600"
       } ${isDisabled ? "opacity-60" : "opacity-100"}`}
     >
       {loading ? (
-        <ActivityIndicator color={isSecondary ? "#0f172a" : "#ffffff"} />
+        <ActivityIndicator color={isSecondary ? "#001b3c" : "#ffffff"} />
       ) : (
         <Text
-          className={`text-base font-semibold ${isSecondary ? "text-health-text" : "text-white"}`}
+          className={`text-base font-semibold tracking-wide ${isSecondary ? "text-health-text" : "text-white"}`}
         >
           {label}
         </Text>

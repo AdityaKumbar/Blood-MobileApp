@@ -3,7 +3,9 @@ import { Text, View } from "react-native";
 
 import { NotificationBadge } from "../../components/notifications/NotificationBadge";
 import { Card } from "../../components/ui/Card";
+import { InfoRow } from "../../components/ui/InfoRow";
 import { Screen } from "../../components/ui/Screen";
+import { SectionHeader } from "../../components/ui/SectionHeader";
 import { NOTIFICATION_ROUTES } from "../../navigation/constants";
 import type { NotificationsStackScreenProps } from "../../navigation/types";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
@@ -25,17 +27,11 @@ export function NotificationDetailsScreen({ route }: Props) {
 
   return (
     <Screen>
-      <Text className="text-2xl font-bold text-health-text">Notification Details</Text>
-      <Text className="mt-1 text-sm text-health-muted">
-        Detailed context for selected notification.
-      </Text>
+      <SectionHeader title="Notification Details" subtitle="Detailed context for selected notification." />
 
       <View className="mt-4">
-        <Card>
-          <Text className="text-xs uppercase text-health-muted">Notification ID</Text>
-          <Text className="mt-1 text-base font-semibold text-health-text">
-            {route.params.notificationId}
-          </Text>
+        <Card className="bg-health-surfaceSoft">
+          <InfoRow label="Notification ID" value={route.params.notificationId} />
           {item ? (
             <View className="mt-3">
               <NotificationBadge type={item.type} />

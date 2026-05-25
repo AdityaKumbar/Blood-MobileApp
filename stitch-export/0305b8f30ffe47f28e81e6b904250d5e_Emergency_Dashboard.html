@@ -1,0 +1,339 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>LifeStream | Emergency Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .bento-card {
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .bento-card:hover {
+            transform: translateY(-4px);
+        }
+        .pulse-red {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-variant": "#d5e3ff",
+                    "error-container": "#ffdad6",
+                    "secondary-container": "#a3d8fe",
+                    "tertiary-fixed-dim": "#9ecfd1",
+                    "on-tertiary-fixed-variant": "#1a4e50",
+                    "on-tertiary-fixed": "#002021",
+                    "tertiary": "#336366",
+                    "primary-container": "#db313f",
+                    "primary-fixed-dim": "#ffb3b1",
+                    "primary-fixed": "#ffdad8",
+                    "surface-container-low": "#f0f3ff",
+                    "on-secondary-fixed": "#001e2e",
+                    "surface-container-highest": "#d5e3ff",
+                    "secondary-fixed-dim": "#98cdf2",
+                    "on-surface": "#001b3c",
+                    "on-surface-variant": "#5b403f",
+                    "inverse-primary": "#ffb3b1",
+                    "on-tertiary-container": "#f2ffff",
+                    "outline-variant": "#e4bebc",
+                    "secondary": "#2b6485",
+                    "surface-container-high": "#dee8ff",
+                    "secondary-fixed": "#c7e7ff",
+                    "surface-dim": "#c8dbff",
+                    "outline": "#8f6f6e",
+                    "surface": "#f9f9ff",
+                    "surface-bright": "#f9f9ff",
+                    "surface-container": "#e7eeff",
+                    "on-primary-fixed": "#410007",
+                    "inverse-surface": "#183153",
+                    "error": "#ba1a1a",
+                    "on-primary": "#ffffff",
+                    "tertiary-fixed": "#b9ecee",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-container": "#fffbff",
+                    "on-secondary-fixed-variant": "#064c6b",
+                    "on-error": "#ffffff",
+                    "on-secondary-container": "#255f80",
+                    "on-secondary": "#ffffff",
+                    "background": "#f9f9ff",
+                    "on-error-container": "#93000a",
+                    "primary": "#b7102a",
+                    "on-background": "#001b3c",
+                    "surface-tint": "#bb152c",
+                    "on-primary-fixed-variant": "#92001c",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary-container": "#4c7c7f",
+                    "inverse-on-surface": "#ecf1ff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "sm": "8px",
+                    "margin-desktop": "40px",
+                    "md": "16px",
+                    "xl": "32px",
+                    "lg": "24px",
+                    "margin-mobile": "20px",
+                    "xs": "4px",
+                    "base": "4px"
+            },
+            "fontFamily": {
+                    "label-md": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "headline-sm": ["Inter"],
+                    "body-md": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "button": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "headline-md": ["Inter"]
+            },
+            "fontSize": {
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["26px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "button": ["16px", {"lineHeight": "20px", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 shadow-sm bg-surface flex justify-between items-center px-margin-mobile h-16 w-full">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary font-headline-md text-headline-md" style="font-variation-settings: 'FILL' 1;">bloodtype</span>
+<h1 class="font-headline-md text-headline-md text-primary tracking-tight">LifeStream</h1>
+</div>
+<button class="active:scale-95 transition-transform p-2 rounded-full hover:bg-surface-container-high text-on-surface-variant">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</header>
+<main class="mt-20 px-margin-mobile md:px-margin-desktop max-w-[1280px] mx-auto space-y-lg">
+<!-- Identity & Impact Section: Bento Layout -->
+<section class="grid grid-cols-4 md:grid-cols-12 gap-md md:gap-lg">
+<!-- Profile Info Card -->
+<div class="col-span-4 md:col-span-4 bento-card bg-surface-container-lowest p-lg rounded-xl shadow-[0px_4px_12px_rgba(29,53,87,0.05)] flex flex-col justify-between">
+<div class="flex items-center gap-md">
+<div class="w-16 h-16 rounded-full bg-primary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-[32px]" style="font-variation-settings: 'FILL' 1;">person</span>
+</div>
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Alex Rivera</h2>
+<span class="font-label-md text-label-md text-on-surface-variant uppercase">Certified Donor</span>
+</div>
+</div>
+<div class="mt-xl flex items-center justify-between p-md bg-surface-container-low rounded-lg">
+<span class="font-body-md text-body-md text-on-surface">Your Blood Type</span>
+<span class="font-headline-md text-headline-md text-primary bg-primary-fixed-dim px-4 py-1 rounded-lg">O+</span>
+</div>
+</div>
+<!-- Impact Stats Card -->
+<div class="col-span-4 md:col-span-8 bento-card bg-primary text-on-primary p-lg rounded-xl shadow-[0px_4px_12px_rgba(29,53,87,0.1)] relative overflow-hidden">
+<div class="absolute -right-12 -top-12 opacity-10">
+<span class="material-symbols-outlined text-[180px]">volunteer_activism</span>
+</div>
+<div class="relative z-10 h-full flex flex-col justify-between">
+<div>
+<h2 class="font-headline-sm text-headline-sm flex items-center gap-2">
+                            Your Lifetime Impact
+                            <span class="material-symbols-outlined text-secondary-container">verified</span>
+</h2>
+<p class="font-body-md text-body-md mt-sm opacity-90 max-w-md">Your commitment to donating blood is saving lives every month. You are a community hero.</p>
+</div>
+<div class="flex gap-lg mt-xl">
+<div class="flex flex-col">
+<span class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg leading-none">12</span>
+<span class="font-label-md text-label-md opacity-80 mt-xs">Donations</span>
+</div>
+<div class="w-px h-12 bg-on-primary/20"></div>
+<div class="flex flex-col">
+<span class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg leading-none">36</span>
+<span class="font-label-md text-label-md opacity-80 mt-xs">Lives Saved</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Goal Card -->
+<div class="col-span-4 md:col-span-12 bento-card bg-secondary text-on-secondary p-lg rounded-xl shadow-[0px_4px_12px_rgba(29,53,87,0.05)]">
+<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-md">
+<div class="space-y-xs">
+<h3 class="font-headline-sm text-headline-sm">Next Eligibility</h3>
+<p class="font-body-sm text-body-sm opacity-90">You are eligible to donate in 14 days.</p>
+</div>
+<div class="flex-1 max-w-2xl">
+<div class="h-3 w-full bg-on-secondary/20 rounded-full overflow-hidden">
+<div class="h-full bg-secondary-container w-3/4 rounded-full"></div>
+</div>
+<div class="flex justify-between mt-sm">
+<span class="font-label-md text-label-md">Last: Oct 12</span>
+<span class="font-label-md text-label-md">Target: Dec 12</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Urgent Requests Section -->
+<section class="space-y-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary pulse-red">campaign</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Urgent Requests</h2>
+</div>
+<button class="font-button text-button text-primary hover:bg-primary/5 px-4 py-2 rounded-lg transition-colors">See Map</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-md">
+<!-- Request Card 1 -->
+<div class="bg-surface-container-lowest p-md rounded-xl shadow-[0px_4px_12px_rgba(29,53,87,0.05)] border-l-4 border-primary hover:shadow-lg transition-all duration-300">
+<div class="flex justify-between items-start">
+<div class="bg-error-container text-on-error-container px-3 py-1 rounded-full font-label-md text-label-md flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">warning</span>
+                            Critical Stock
+                        </div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">2.4 miles away</span>
+</div>
+<div class="mt-md flex items-center gap-md">
+<div class="w-14 h-14 bg-surface-container-high rounded-lg flex items-center justify-center font-headline-md text-headline-md text-primary">
+                            O+
+                        </div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Central Medical Center</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Main Campus - Unit 4B</p>
+</div>
+</div>
+<div class="mt-lg flex items-center gap-2">
+<button class="flex-1 bg-primary text-on-primary h-12 rounded-xl font-button text-button active:scale-95 transition-transform flex items-center justify-center gap-2">
+                            Donate Now
+                            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+<button class="w-12 h-12 rounded-xl border border-outline flex items-center justify-center text-secondary hover:bg-secondary/5">
+<span class="material-symbols-outlined">directions</span>
+</button>
+</div>
+</div>
+<!-- Request Card 2 -->
+<div class="bg-surface-container-lowest p-md rounded-xl shadow-[0px_4px_12px_rgba(29,53,87,0.05)] border-l-4 border-primary hover:shadow-lg transition-all duration-300">
+<div class="flex justify-between items-start">
+<div class="bg-error-container text-on-error-container px-3 py-1 rounded-full font-label-md text-label-md flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">warning</span>
+                            Critical Stock
+                        </div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">5.1 miles away</span>
+</div>
+<div class="mt-md flex items-center gap-md">
+<div class="w-14 h-14 bg-surface-container-high rounded-lg flex items-center justify-center font-headline-md text-headline-md text-primary">
+                            AB-
+                        </div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">St. Jude Trauma Care</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Emergency Ward</p>
+</div>
+</div>
+<div class="mt-lg flex items-center gap-2">
+<button class="flex-1 bg-primary text-on-primary h-12 rounded-xl font-button text-button active:scale-95 transition-transform flex items-center justify-center gap-2">
+                            Donate Now
+                            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+<button class="w-12 h-12 rounded-xl border border-outline flex items-center justify-center text-secondary hover:bg-secondary/5">
+<span class="material-symbols-outlined">directions</span>
+</button>
+</div>
+</div>
+<!-- Request Card 3 -->
+<div class="bg-surface-container-lowest p-md rounded-xl shadow-[0px_4px_12px_rgba(29,53,87,0.05)] border-l-4 border-secondary hover:shadow-lg transition-all duration-300">
+<div class="flex justify-between items-start">
+<div class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full font-label-md text-label-md flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">trending_down</span>
+                            Low Stock
+                        </div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">0.8 miles away</span>
+</div>
+<div class="mt-md flex items-center gap-md">
+<div class="w-14 h-14 bg-surface-container-high rounded-lg flex items-center justify-center font-headline-md text-headline-md text-secondary">
+                            A+
+                        </div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">City Red Cross</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Community Hub</p>
+</div>
+</div>
+<div class="mt-lg flex items-center gap-2">
+<button class="flex-1 bg-primary text-on-primary h-12 rounded-xl font-button text-button active:scale-95 transition-transform flex items-center justify-center gap-2">
+                            Donate Now
+                            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+<button class="w-12 h-12 rounded-xl border border-outline flex items-center justify-center text-secondary hover:bg-secondary/5">
+<span class="material-symbols-outlined">directions</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Quick Map Access -->
+<section class="h-48 rounded-2xl overflow-hidden relative group cursor-pointer shadow-[0px_4px_12px_rgba(29,53,87,0.1)]">
+<img class="w-full h-full object-cover grayscale transition-transform duration-700 group-hover:scale-105" data-alt="A clean, minimalist architectural map view of a modern city grid with soft blue and gray tones. The image is styled for a healthcare interface, featuring subtle red markers indicating donation locations. The lighting is overcast and soft, providing high clarity and a professional, dependable atmosphere." data-location="Metropolis" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAcW3UjgYjOZrECDfmSi5Va5mYmSr5VxqSSiZNJAZ723VyNiAHTIBKPkm8hNHMQioWW-4SV6YlVO9QYKgbrsvp0gAqK2IPEJnV-eE8CFuim10oZXyjLwvTWH7qd_wfYM8kukq1q8b7SNvUWSbtUnjHme-p7Mp5SRfc4C1tERR53lrb24CPCCfzgALmSJYmNzyKJt1Jt6lQcMfZQqr-xouAX9zJZBgw2rrgrDBEVcpnC8R0yZN4TFO1zbX99ZSH7ORui0NmAejcTwkM">
+<div class="absolute inset-0 bg-gradient-to-t from-inverse-surface/80 via-transparent to-transparent flex flex-col justify-end p-lg">
+<h3 class="text-on-primary font-headline-md text-headline-md">Find centers near you</h3>
+<p class="text-on-primary opacity-80 font-body-sm text-body-sm">4 active locations within 10 miles</p>
+</div>
+<div class="absolute top-4 right-4 bg-surface p-2 rounded-full shadow-lg">
+<span class="material-symbols-outlined text-primary">my_location</span>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center h-20 px-2 pb-safe bg-surface shadow-[0px_-4px_12px_rgba(29,53,87,0.05)] z-50">
+<!-- Home (Active) -->
+<a class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-xl px-4 py-1 active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="font-label-md text-label-md">Home</span>
+</a>
+<!-- Map -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-low active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">map</span>
+<span class="font-label-md text-label-md">Map</span>
+</a>
+<!-- Schedule -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-low active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">calendar_month</span>
+<span class="font-label-md text-label-md">Schedule</span>
+</a>
+<!-- Profile -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-container-low active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-md text-label-md">Profile</span>
+</a>
+</nav>
+</body></html>

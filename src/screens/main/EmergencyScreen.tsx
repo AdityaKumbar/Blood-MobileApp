@@ -1,12 +1,13 @@
 import { useEffect } from "react";
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 
 import { EmergencyRequestForm } from "../../components/emergency/EmergencyRequestForm";
 import { RequestStatusBadge } from "../../components/emergency/RequestStatusBadge";
 import { Card } from "../../components/ui/Card";
 import { InlineError } from "../../components/ui/InlineError";
+import { MetricCard } from "../../components/ui/MetricCard";
 import { Screen } from "../../components/ui/Screen";
+import { SectionHeader } from "../../components/ui/SectionHeader";
 import { EMERGENCY_ROUTES } from "../../navigation/constants";
 import type { EmergencyStackScreenProps } from "../../navigation/types";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
@@ -74,37 +75,26 @@ export function EmergencyScreen({ navigation }: Props) {
         }
         ListHeaderComponent={
           <View>
-            <Text className="text-2xl font-bold text-health-text">Emergency</Text>
-            <Text className="mt-1 text-sm text-health-muted">Create and track urgent requests in one place.</Text>
+            <SectionHeader
+              title="Emergency Dashboard"
+              subtitle="Dispatch requests fast. Track fulfillment in one command center."
+              variant="solid"
+            />
             <View className="mt-3 flex-row gap-3">
-              <Card className="flex-1">
-                <View className="flex-row items-center justify-between">
-                  <Text className="text-xs uppercase tracking-wide text-health-muted">Live</Text>
-                  <Ionicons name="radio-outline" size={15} color="#5B6B81" />
-                </View>
-                <Text className="mt-2 text-base font-semibold capitalize text-health-text">
-                  {connectionStatus.toLowerCase()}
-                </Text>
-              </Card>
-              <Card className="flex-1">
-                <View className="flex-row items-center justify-between">
-                  <Text className="text-xs uppercase tracking-wide text-health-muted">Active</Text>
-                  <Ionicons name="pulse-outline" size={15} color="#5B6B81" />
-                </View>
-                <Text className="mt-2 text-base font-semibold text-health-text">{activeCount} cases</Text>
-              </Card>
+              <MetricCard label="Live" value={connectionStatus.toLowerCase()} />
+              <MetricCard label="Active" value={`${activeCount} cases`} />
             </View>
 
             {error ? <InlineError message={error} /> : null}
 
             <View className="mt-4">
-              <Card className="rounded-3xl">
+              <Card className="rounded-3xl border-brand-100 bg-health-surfaceSoft">
                 <Text className="mb-3 text-base font-semibold text-health-text">Create Emergency Request</Text>
                 <EmergencyRequestForm loading={createStatus === "loading"} onSubmit={handleCreateRequest} />
               </Card>
             </View>
 
-            <Text className="mb-2 mt-5 text-lg font-semibold text-health-text">Emergency Feed</Text>
+            <Text className="mb-2 mt-5 text-lg font-semibold text-health-text">Live Emergency Feed</Text>
             {feedStatus === "loading" && feed.length === 0 ? (
               <View className="mb-3 mt-2 items-center">
                 <ActivityIndicator color="#DC2626" />
@@ -115,7 +105,7 @@ export function EmergencyScreen({ navigation }: Props) {
         }
         ListEmptyComponent={
           feedStatus === "loading" ? null : (
-            <Card>
+      <Card className="border-l-4 border-l-brand-600">
               <Text className="text-sm text-health-muted">No active emergency requests right now.</Text>
             </Card>
           )

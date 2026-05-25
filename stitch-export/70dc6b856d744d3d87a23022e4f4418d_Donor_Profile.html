@@ -1,0 +1,283 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport">
+<title>Donor Profile - LifeStream</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-variant": "#d5e3ff",
+                    "error-container": "#ffdad6",
+                    "secondary-container": "#a3d8fe",
+                    "tertiary-fixed-dim": "#9ecfd1",
+                    "on-tertiary-fixed-variant": "#1a4e50",
+                    "on-tertiary-fixed": "#002021",
+                    "tertiary": "#336363",
+                    "primary-container": "#db313f",
+                    "primary-fixed-dim": "#ffb3b1",
+                    "primary-fixed": "#ffdad8",
+                    "surface-container-low": "#f0f3ff",
+                    "on-secondary-fixed": "#001e2e",
+                    "surface-container-highest": "#d5e3ff",
+                    "secondary-fixed-dim": "#98cdf2",
+                    "on-surface": "#001b3c",
+                    "on-surface-variant": "#5b403f",
+                    "inverse-primary": "#ffb3b1",
+                    "on-tertiary-container": "#f2ffff",
+                    "outline-variant": "#e4bebc",
+                    "secondary": "#2b6485",
+                    "surface-container-high": "#dee8ff",
+                    "secondary-fixed": "#c7e7ff",
+                    "surface-dim": "#c8dbff",
+                    "outline": "#8f6f6e",
+                    "surface": "#f9f9ff",
+                    "surface-bright": "#f9f9ff",
+                    "surface-container": "#e7eeff",
+                    "on-primary-fixed": "#410007",
+                    "inverse-surface": "#183153",
+                    "error": "#ba1a1a",
+                    "on-primary": "#ffffff",
+                    "tertiary-fixed": "#b9ecee",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-container": "#fffbff",
+                    "on-secondary-fixed-variant": "#064c6b",
+                    "on-error": "#ffffff",
+                    "on-secondary-container": "#255f80",
+                    "on-secondary": "#ffffff",
+                    "background": "#f9f9ff",
+                    "on-error-container": "#93000a",
+                    "primary": "#b7102a",
+                    "on-background": "#001b3c",
+                    "surface-tint": "#bb152c",
+                    "on-primary-fixed-variant": "#92001c",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary-container": "#4c7c7f",
+                    "inverse-on-surface": "#ecf1ff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "sm": "8px",
+                    "margin-desktop": "40px",
+                    "md": "16px",
+                    "xl": "32px",
+                    "lg": "24px",
+                    "margin-mobile": "20px",
+                    "xs": "4px",
+                    "base": "4px"
+            },
+            "fontFamily": {
+                    "label-md": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "headline-sm": ["Inter"],
+                    "body-md": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "button": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "headline-md": ["Inter"]
+            },
+            "fontSize": {
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["26px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "button": ["16px", {"lineHeight": "20px", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .timeline-line::before {
+            content: '';
+            position: absolute;
+            left: 19px;
+            top: 24px;
+            bottom: -24px;
+            width: 2px;
+            background-color: #E1E8ED;
+        }
+        .timeline-item:last-child .timeline-line::before {
+            display: none;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 shadow-sm bg-surface flex justify-between items-center px-margin-mobile h-16 w-full">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary font-headline-md text-headline-md" data-icon="bloodtype">bloodtype</span>
+<h1 class="font-headline-md text-headline-md text-primary tracking-tight">LifeStream</h1>
+</div>
+<button class="active:scale-95 transition-transform hover:bg-surface-container-high p-2 rounded-full">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="notifications">notifications</span>
+</button>
+</header>
+<main class="pt-20 px-margin-mobile md:px-margin-desktop max-w-screen-xl mx-auto space-y-lg">
+<!-- Hero Section: User Avatar, Name, Blood Type -->
+<section class="mt-4">
+<div class="glass-card shadow-[0px_4px_12px_rgba(29,53,87,0.05)] rounded-xl p-lg flex flex-col md:flex-row items-center gap-lg" style="transform: translateY(0px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
+<div class="relative">
+<div class="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-surface shadow-md">
+<img alt="Donor Portrait" class="w-full h-full object-cover" data-alt="A professional and warm close-up portrait of a female blood donor with a kind smile, set against a bright, airy medical facility background. The lighting is soft and natural, emphasizing a high-key, modern light-mode aesthetic. The composition is clean and minimalist, reflecting a calm urgency and life-affirming atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCphLdZpYEWfwutKv2heK9WNBsx0Vb0Lbx4bvSBZGQPc40911pkwlB2ez0Ta_Op1dpGsurJ-LwhISWX4OSqDgSWA2ymargQDRT-99nc-GNRzoAhHzvU70wSQCPLdN9PwlmOtiAPtchNDQZBn6zmh6B6HLANQhU3e9gJfP9OcSI2ZfjeMGO2c5DZz-ysQV2ORi8GNj9noRyXxBcTaDM_NCrK3fNOIB91tS8EU-VwumDJ-ZUy4t7z92jq3A7mI-6Gf1MHr718mnuKnRo">
+</div>
+<div class="absolute -bottom-2 -right-2 bg-primary text-on-primary font-headline-sm text-headline-sm w-12 h-12 flex items-center justify-center rounded-full shadow-lg border-4 border-surface">
+                        O+
+                    </div>
+</div>
+<div class="text-center md:text-left space-y-sm flex-1">
+<h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface">Elena Rodriguez</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Silver Tier Donor • Member since Jan 2022</p>
+<div class="flex flex-wrap justify-center md:justify-start gap-sm pt-xs">
+<span class="bg-secondary-container text-on-secondary-container font-label-md text-label-md px-3 py-1 rounded-full">8 Donations</span>
+<span class="bg-surface-container-high text-on-surface font-label-md text-label-md px-3 py-1 rounded-full flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="favorite">favorite</span> 24 Lives Saved
+                        </span>
+</div>
+</div>
+<div class="hidden md:block w-px h-24 bg-outline-variant"></div>
+<div class="flex-col items-center justify-center hidden md:flex">
+<p class="font-label-md text-label-md text-secondary uppercase tracking-widest">Next Eligibility</p>
+<p class="font-headline-md text-headline-md text-primary">May 12, 2024</p>
+</div>
+</div>
+</section>
+<!-- Bento Grid: Stats & Badges -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-lg">
+<!-- Badges Section (Left Column Mobile / 8 Cols Desktop) -->
+
+<!-- Progress Card (Right Column Desktop / Bottom Mobile) -->
+<section class="md:col-span-4 glass-card shadow-[0px_4px_12px_rgba(29,53,87,0.05)] rounded-xl p-lg flex flex-col justify-between">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-sm">Annual Goal</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-lg">You've reached 75% of your target for this year.</p>
+</div>
+<div class="space-y-xs">
+<div class="flex justify-between items-end">
+<span class="font-label-md text-label-md text-primary">3 / 4 Pints</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Gold Milestone</span>
+</div>
+<div class="h-3 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 75%"></div>
+</div>
+</div>
+</section>
+</div>
+<!-- Donation History Section -->
+<section class="space-y-md">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Donation History</h3>
+<div class="space-y-0 relative">
+<!-- Timeline Item 1 -->
+<div class="timeline-item timeline-line relative pb-lg flex gap-md">
+<div class="z-10 bg-primary text-on-primary w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-md">
+<span class="material-symbols-outlined text-xl" data-icon="bloodtype">bloodtype</span>
+</div>
+<div class="glass-card flex-1 shadow-[0px_4px_12px_rgba(29,53,87,0.05)] rounded-xl p-md">
+<div class="flex justify-between items-start">
+<div>
+<h4 class="font-button text-button text-on-surface">City General Hospital</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Whole Blood Donation</p>
+</div>
+<span class="font-label-md text-label-md text-secondary bg-secondary-container/30 px-2 py-1 rounded">Feb 14, 2024</span>
+</div>
+</div>
+</div>
+<!-- Timeline Item 2 -->
+<div class="timeline-item timeline-line relative pb-lg flex gap-md">
+<div class="z-10 bg-secondary text-on-secondary w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-md">
+<span class="material-symbols-outlined text-xl" data-icon="opacity">opacity</span>
+</div>
+<div class="glass-card flex-1 shadow-[0px_4px_12px_rgba(29,53,87,0.05)] rounded-xl p-md">
+<div class="flex justify-between items-start">
+<div>
+<h4 class="font-button text-button text-on-surface">Red Cross Mobile Unit</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Plasma Donation</p>
+</div>
+<span class="font-label-md text-label-md text-secondary bg-secondary-container/30 px-2 py-1 rounded">Nov 20, 2023</span>
+</div>
+</div>
+</div>
+<!-- Timeline Item 3 -->
+<div class="timeline-item timeline-line relative pb-lg flex gap-md">
+<div class="z-10 bg-primary text-on-primary w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-md">
+<span class="material-symbols-outlined text-xl" data-icon="bloodtype">bloodtype</span>
+</div>
+<div class="glass-card flex-1 shadow-[0px_4px_12px_rgba(29,53,87,0.05)] rounded-xl p-md opacity-70">
+<div class="flex justify-between items-start">
+<div>
+<h4 class="font-button text-button text-on-surface">Northside Medical Center</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Whole Blood Donation</p>
+</div>
+<span class="font-label-md text-label-md text-secondary bg-secondary-container/30 px-2 py-1 rounded">Aug 05, 2023</span>
+</div>
+</div>
+</div>
+</div>
+<button class="w-full py-3 bg-surface-container-highest text-on-surface font-button text-button rounded-xl hover:bg-surface-container-high transition-colors">
+                Load Older History
+            </button>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center h-20 px-2 pb-safe bg-surface shadow-[0px_-4px_12px_rgba(29,53,87,0.05)] z-50">
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 active:scale-90 transition-all duration-200">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-md text-label-md">Home</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 active:scale-90 transition-all duration-200">
+<span class="material-symbols-outlined" data-icon="map">map</span>
+<span class="font-label-md text-label-md">Map</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 active:scale-90 transition-all duration-200">
+<span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
+<span class="font-label-md text-label-md">Schedule</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-xl px-4 py-1 active:scale-90 transition-all duration-200">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-md text-label-md">Profile</span>
+</button>
+</nav>
+<script>
+        // Simple micro-interaction for cards
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-2px)';
+                card.style.transition = 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0px)';
+            });
+        });
+    </script>
+
+
+</body></html>

@@ -14,4 +14,5 @@ export interface EmergencyContact {
 export interface ProfileInfo {
   fullName: string;
   phone: string;
+  avatarUri?: string;
 }

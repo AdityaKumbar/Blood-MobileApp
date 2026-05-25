@@ -17,7 +17,7 @@ export function ProfileStackNavigator() {
       <Stack.Screen
         name={PROFILE_ROUTES.PROFILE}
         component={ProfileScreen}
-        options={{ title: "Profile" }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name={PROFILE_ROUTES.EDIT_PROFILE}

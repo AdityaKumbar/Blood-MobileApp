@@ -80,7 +80,7 @@ export function RegisterScreen({ navigation }: Props) {
   return (
     <AuthShell
       title="Create Account"
-      subtitle="Join the network and make blood or oxygen support accessible faster."
+      subtitle="Join the donor network and respond when every second matters."
       footer={
         <AuthFooterLink
           prompt="Already have an account?"
@@ -157,7 +157,7 @@ export function RegisterScreen({ navigation }: Props) {
         error={fieldErrors.confirmPassword}
       />
 
-      <AppButton label="Create Account" onPress={handleSubmit} loading={isSubmitting} />
+      <AppButton label="Sign Up" onPress={handleSubmit} loading={isSubmitting} />
     </AuthShell>
   );
 }

@@ -4,8 +4,10 @@ import { ActivityIndicator, Text, View } from "react-native";
 import { RequestStatusBadge } from "../../components/emergency/RequestStatusBadge";
 import { AppButton } from "../../components/ui/AppButton";
 import { Card } from "../../components/ui/Card";
+import { InfoRow } from "../../components/ui/InfoRow";
 import { InlineError } from "../../components/ui/InlineError";
 import { Screen } from "../../components/ui/Screen";
+import { SectionHeader } from "../../components/ui/SectionHeader";
 import { EMERGENCY_ROUTES } from "../../navigation/constants";
 import type { EmergencyStackScreenProps } from "../../navigation/types";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
@@ -44,16 +46,16 @@ export function EmergencyDetailsScreen({ route }: Props) {
 
   return (
     <Screen>
-      <Text className="text-2xl font-bold text-health-text">Emergency Details</Text>
-      <Text className="mt-1 text-sm text-health-muted">
-        Request timeline and critical response information.
-      </Text>
+      <SectionHeader
+        title="Request Details"
+        subtitle="Request timeline and critical response information."
+      />
 
       {error ? <InlineError message={error} /> : null}
 
       {detailsStatus === "loading" && !request ? (
         <View className="mt-6 items-center">
-          <ActivityIndicator color="#DC2626" />
+          <ActivityIndicator color="#B7102A" />
           <Text className="mt-2 text-xs text-health-muted">Loading request details...</Text>
         </View>
       ) : null}
@@ -71,17 +73,19 @@ export function EmergencyDetailsScreen({ route }: Props) {
           <Card>
             <Text className="text-xs uppercase text-health-muted">Patient</Text>
             <Text className="mt-1 text-base font-semibold text-health-text">{request.patientName}</Text>
-            <Text className="mt-2 text-sm text-health-muted">Hospital: {request.hospital}</Text>
-            <Text className="mt-1 text-sm text-health-muted">Contact: {request.contactNumber}</Text>
+            <View className="mt-2">
+              <InfoRow label="Hospital" value={request.hospital} />
+              <InfoRow label="Contact" value={request.contactNumber} />
+            </View>
           </Card>
 
-          <Card>
+          <Card className="bg-health-surfaceSoft">
             <Text className="text-xs uppercase text-health-muted">Medical Requirement</Text>
             <Text className="mt-1 text-base font-semibold text-health-text">
-              {request.bloodGroup} • {request.unitsRequired} units
+              {request.bloodGroup} - {request.unitsRequired} units
             </Text>
             <Text className="mt-2 text-sm text-health-muted">
-              Urgency: {request.urgency} {request.oxygenNeeded ? "• Oxygen Needed" : ""}
+              Urgency: {request.urgency} {request.oxygenNeeded ? "- Oxygen Needed" : ""}
             </Text>
           </Card>
 

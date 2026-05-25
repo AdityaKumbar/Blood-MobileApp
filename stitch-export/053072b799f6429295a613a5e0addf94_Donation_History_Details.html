@@ -1,0 +1,244 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed-dim": "#98cdf2",
+                    "on-secondary-fixed": "#001e2e",
+                    "outline": "#8f6f6e",
+                    "inverse-on-surface": "#ecf1ff",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary-fixed-variant": "#1a4e50",
+                    "surface-tint": "#bb152c",
+                    "secondary-container": "#a3d8fe",
+                    "primary-fixed": "#ffdad8",
+                    "on-primary": "#ffffff",
+                    "surface-container": "#e7eeff",
+                    "on-tertiary-container": "#f2ffff",
+                    "surface": "#f9f9ff",
+                    "on-background": "#001b3c",
+                    "surface-container-highest": "#d5e3ff",
+                    "on-surface": "#001b3c",
+                    "surface-container-low": "#f0f3ff",
+                    "error-container": "#ffdad6",
+                    "surface-bright": "#f9f9ff",
+                    "secondary-fixed": "#c7e7ff",
+                    "primary-fixed-dim": "#ffb3b1",
+                    "on-error": "#ffffff",
+                    "on-secondary-container": "#255f80",
+                    "on-surface-variant": "#5b403f",
+                    "secondary": "#2b6485",
+                    "primary": "#b7102a",
+                    "on-error-container": "#93000a",
+                    "inverse-surface": "#183153",
+                    "tertiary": "#336366",
+                    "outline-variant": "#e4bebc",
+                    "on-secondary": "#ffffff",
+                    "on-primary-fixed": "#410007",
+                    "primary-container": "#db313f",
+                    "inverse-primary": "#ffb3b1",
+                    "error": "#ba1a1a",
+                    "tertiary-container": "#4c7c7f",
+                    "on-primary-fixed-variant": "#92001c",
+                    "tertiary-fixed": "#b9ecee",
+                    "tertiary-fixed-dim": "#9ecfd1",
+                    "on-secondary-fixed-variant": "#064c6b",
+                    "surface-variant": "#d5e3ff",
+                    "surface-dim": "#c8dbff",
+                    "on-primary-container": "#fffbff",
+                    "background": "#f9f9ff",
+                    "on-tertiary-fixed": "#002021",
+                    "surface-container-high": "#dee8ff",
+                    "on-tertiary": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "sm": "8px",
+                    "md": "16px",
+                    "lg": "24px",
+                    "gutter": "16px",
+                    "margin-desktop": "40px",
+                    "xs": "4px",
+                    "margin-mobile": "20px",
+                    "base": "4px",
+                    "xl": "32px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "button": ["Inter"],
+                    "label-md": ["Inter"],
+                    "body-md": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "headline-sm": ["Inter"],
+                    "headline-md": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-lg-mobile": ["26px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "button": ["16px", {"lineHeight": "20px", "fontWeight": "600"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .fill-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+        body {
+            background-color: #f9f9ff;
+            color: #001b3c;
+            -webkit-font-smoothing: antialiased;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(225, 232, 237, 0.5);
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md overflow-x-hidden">
+<!-- Top App Bar -->
+<header class="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-4 h-16 bg-surface dark:bg-inverse-surface shadow-sm">
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low transition-colors active:scale-95 duration-150">
+<span class="material-symbols-outlined text-primary dark:text-inverse-primary" data-icon="arrow_back">arrow_back</span>
+</button>
+<h1 class="font-headline-sm text-headline-sm-mobile md:text-headline-sm text-on-surface">Donation Details</h1>
+</div>
+<div class="flex items-center gap-2">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="share">share</span>
+</button>
+</div>
+</header>
+<main class="pt-20 pb-32 max-w-4xl mx-auto px-margin-mobile md:px-margin-desktop">
+<!-- Impact Summary Section -->
+
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Patient Connection Card -->
+<div class="md:col-span-8 glass-card p-lg rounded-xl flex items-center gap-md shadow-[0px_4px_12px_rgba(29,53,87,0.05)] border border-outline-variant/30">
+<img alt="Recipient Photo" class="w-20 h-20 rounded-full object-cover border-4 border-primary-fixed" data-alt="A warm, high-quality portrait of a smiling woman in her late 20s with a kind expression. She is in a bright, modern interior environment with soft, natural lighting. The overall aesthetic is clean and professional, using a soft color palette that aligns with a healthcare brand focused on human connection and gratitude." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDjaMFSg91sBe9Icb_6a341BBArPDlmNaOdLUnXEnvE_NAiLQ9hef9rdFeueCxQ8Houu1aTi8Vnl3t8vd1sTbYXqhNl9FTYRdPz5EJE14jtEyds3gcoY8umeTbWWZSJ-wQ_h5LQ-hT_GTA-wz0JsBBN50uFgr3_NqfPWtwkRk6womKLxiIUyrhPuFq0VvYJt8ld4UquzcxodppTXWnd6Tf0tygwPTXnRcJKsffLnR_fe_1Cn7IwfHlLbXJhMXAmfW2cicAu6j98tek">
+<div>
+<span class="font-label-md text-label-md text-primary uppercase tracking-widest">Recipient Recovery</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Your donation helped: <span class="text-primary">Sarah Jenkins</span></h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-xs">Sarah is recovering well thanks to the O+ blood provided by donors like you at City General.</p>
+</div>
+</div>
+<!-- Blood Type Chip/Status -->
+<div class="md:col-span-4 bg-secondary-container p-lg rounded-xl flex flex-col justify-center items-center text-center shadow-[0px_4px_12px_rgba(29,53,87,0.05)]">
+<span class="font-label-md text-label-md text-on-secondary-container uppercase mb-sm">Blood Type</span>
+<div class="text-[48px] font-bold text-on-secondary-container bg-white/40 w-24 h-24 flex items-center justify-center rounded-2xl shadow-inner">O+</div>
+<p class="font-body-sm text-body-sm text-on-secondary-container mt-md font-semibold">Universal Donor Support</p>
+</div>
+<!-- Donation Details Card -->
+<div class="md:col-span-7 glass-card p-lg rounded-xl shadow-[0px_4px_12px_rgba(29,53,87,0.05)]">
+<h4 class="font-headline-sm text-headline-sm mb-md border-b border-outline-variant pb-xs text-on-surface">Donation Statistics</h4>
+<div class="space-y-md">
+<div class="flex items-start gap-md">
+<span class="material-symbols-outlined text-primary p-2 bg-primary-fixed rounded-lg" data-icon="calendar_today">calendar_today</span>
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant">Date</p>
+<p class="font-body-lg text-body-lg font-bold">February 14, 2024</p>
+</div>
+</div>
+<div class="flex items-start gap-md">
+<span class="material-symbols-outlined text-primary p-2 bg-primary-fixed rounded-lg" data-icon="hospital">local_hospital</span>
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant">Hospital</p>
+<p class="font-body-lg text-body-lg font-bold">City General Hospital</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">1200 Healthcare Way</p>
+</div>
+</div>
+<div class="flex items-start gap-md">
+<span class="material-symbols-outlined text-primary p-2 bg-primary-fixed rounded-lg" data-icon="water_drop">water_drop</span>
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant">Volume &amp; Type</p>
+<div class="flex gap-sm mt-xs">
+<span class="bg-primary px-3 py-1 rounded-full text-white font-label-md">Whole Blood</span>
+<span class="bg-secondary px-3 py-1 rounded-full text-white font-label-md text-label-md">1 Pint</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Certificate/Badge Card -->
+<div class="md:col-span-5 relative group overflow-hidden rounded-xl bg-inverse-surface p-lg flex flex-col items-center justify-center text-center shadow-[0px_8px_24px_rgba(29,53,87,0.1)]">
+<!-- Abstract Badge Graphic -->
+<div class="w-32 h-32 relative mb-md transform transition-transform group-hover:scale-110 duration-300">
+<div class="absolute inset-0 bg-primary rounded-full animate-pulse opacity-20"></div>
+<div class="absolute inset-4 bg-primary/40 rounded-full"></div>
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-[64px] fill-icon" data-icon="verified_user" style="font-variation-settings: &quot;FILL&quot; 1;">verified_user</span>
+</div>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-white mb-xs">Certified Life-Saver</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant dark:text-inverse-on-surface/70">Verified Achievement</p>
+<button class="mt-lg px-md py-sm bg-primary text-white font-button rounded-xl hover:bg-primary-container transition-colors active:scale-95">
+                    Download Certificate
+                </button>
+</div>
+</div>
+<!-- Call to Action -->
+<div class="mt-xl text-center">
+<button class="w-full md:w-auto bg-primary text-white px-xl h-14 rounded-xl font-button shadow-lg flex items-center justify-center gap-sm hover:brightness-110 transition-all">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+                Schedule Your Next Donation
+            </button>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-safe bg-surface-container dark:bg-surface-container-lowest rounded-t-xl shadow-lg border-t border-outline-variant">
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-secondary-fixed-variant px-4 py-1 hover:bg-surface-container-highest dark:hover:bg-surface-dim transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-md text-label-md">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container dark:bg-primary text-on-primary-container dark:text-on-primary rounded-xl px-4 py-1 scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined fill-icon" data-icon="history" style="font-variation-settings: &quot;FILL&quot; 1;">history</span>
+<span class="font-label-md text-label-md">History</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-secondary-fixed-variant px-4 py-1 hover:bg-surface-container-highest dark:hover:bg-surface-dim transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="bloodtype">bloodtype</span>
+<span class="font-label-md text-label-md">Donate</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-secondary-fixed-variant px-4 py-1 hover:bg-surface-container-highest dark:hover:bg-surface-dim transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-md text-label-md">Profile</span>
+</a>
+</nav>
+<script>
+        // Micro-interactions for certificate badge
+        const badge = document.querySelector('.group');
+        if(badge) {
+            badge.addEventListener('mouseenter', () => {
+                // Potential for canvas confetti or subtle rotation
+            });
+        }
+    </script>
+
+
+</body></html>

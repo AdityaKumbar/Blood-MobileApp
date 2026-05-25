@@ -1,0 +1,255 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Notifications - LifeStream</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed": "#b9ecee",
+                    "surface-container-high": "#dee8ff",
+                    "surface-container": "#e7eeff",
+                    "on-primary": "#ffffff",
+                    "tertiary-container": "#4c7c7f",
+                    "primary-container": "#db313f",
+                    "inverse-primary": "#ffb3b1",
+                    "surface-bright": "#f9f9ff",
+                    "on-error": "#ffffff",
+                    "on-secondary-fixed": "#001e2e",
+                    "on-secondary-fixed-variant": "#064c6b",
+                    "surface-tint": "#bb152c",
+                    "primary": "#b7102a",
+                    "inverse-on-surface": "#ecf1ff",
+                    "on-tertiary-container": "#f2ffff",
+                    "secondary-fixed": "#c7e7ff",
+                    "on-tertiary-fixed": "#002021",
+                    "on-tertiary-fixed-variant": "#1a4e50",
+                    "secondary-fixed-dim": "#98cdf2",
+                    "surface-variant": "#d5e3ff",
+                    "primary-fixed-dim": "#ffb3b1",
+                    "surface": "#f9f9ff",
+                    "surface-container-low": "#f0f3ff",
+                    "surface-container-lowest": "#ffffff",
+                    "outline-variant": "#e4bebc",
+                    "on-primary-container": "#fffbff",
+                    "on-error-container": "#93000a",
+                    "tertiary": "#336366",
+                    "on-background": "#001b3c",
+                    "primary-fixed": "#ffdad8",
+                    "outline": "#8f6f6e",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary-container": "#255f80",
+                    "on-surface": "#001b3c",
+                    "on-primary-fixed-variant": "#92001c",
+                    "error": "#ba1a1a",
+                    "surface-dim": "#c8dbff",
+                    "tertiary-fixed-dim": "#9ecfd1",
+                    "surface-container-highest": "#d5e3ff",
+                    "background": "#f9f9ff",
+                    "on-primary-fixed": "#410007",
+                    "inverse-surface": "#183153",
+                    "secondary": "#2b6485",
+                    "error-container": "#ffdad6",
+                    "secondary-container": "#a3d8fe",
+                    "on-surface-variant": "#5b403f",
+                    "on-secondary": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "sm": "8px",
+                    "gutter": "16px",
+                    "xl": "32px",
+                    "md": "16px",
+                    "margin-mobile": "20px",
+                    "margin-desktop": "40px",
+                    "lg": "24px",
+                    "xs": "4px",
+                    "base": "4px"
+            },
+            "fontFamily": {
+                    "label-md": ["Inter"],
+                    "body-md": ["Inter"],
+                    "headline-sm": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "button": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "headline-lg": ["Inter"]
+            },
+            "fontSize": {
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "button": ["16px", {"lineHeight": "20px", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["26px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .active-filter { background-color: #b7102a; color: white; }
+        .hide-urgent .urgent-card { display: none; }
+        .hide-general .general-card { display: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 shadow-sm bg-surface dark:bg-surface-dim flex justify-between items-center px-margin-mobile h-16 w-full">
+<div class="flex items-center gap-4">
+<button class="active:scale-95 transition-transform text-on-surface-variant dark:text-surface-variant" onclick="window.history.back()">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="font-headline-md text-headline-md text-primary dark:text-primary-fixed-dim tracking-tight">Notifications</h1>
+</div>
+<div class="flex items-center gap-2">
+<button class="material-symbols-outlined text-primary dark:text-primary-fixed-dim active:scale-95 transition-transform">notifications</button>
+</div>
+</header>
+<main class="mt-20 px-margin-mobile">
+<!-- Filter Toggle -->
+<div class="flex gap-sm mb-lg bg-surface-container-low p-1 rounded-xl">
+<button class="flex-1 py-2 font-button text-button rounded-lg active-filter transition-all" id="filter-all" onclick="setFilter('all')">All</button>
+<button class="flex-1 py-2 font-button text-button rounded-lg text-on-surface-variant transition-all" id="filter-urgent" onclick="setFilter('urgent')">Urgent</button>
+</div>
+<div class="space-y-md" id="notification-list">
+<!-- Urgent Notification Card -->
+<div class="urgent-card bg-surface-container-lowest border-l-4 border-primary p-md rounded-xl shadow-[0px_4px_12px_rgba(29,53,87,0.05)] relative overflow-hidden">
+<div class="absolute top-0 right-0">
+<div class="bg-primary text-on-primary px-3 py-1 rounded-bl-xl font-label-md text-label-md">URGENT</div>
+</div>
+<div class="flex gap-md">
+<div class="w-12 h-12 rounded-full bg-primary-fixed flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-primary" data-weight="fill" style="font-variation-settings: 'FILL' 1;">bloodtype</span>
+</div>
+<div class="flex-1">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-xs">O+ Needed Urgently</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-sm">City Hospital has a critical shortage of O+ blood for an emergency surgery.</p>
+<div class="flex items-center gap-sm mb-md text-primary font-label-md text-label-md">
+<span class="material-symbols-outlined text-[18px]">location_on</span>
+<span>1.2 miles away</span>
+</div>
+<div class="flex gap-sm">
+<button class="flex-1 bg-primary text-on-primary font-button text-button py-2 rounded-lg active:scale-95 transition-all">Donate Now</button>
+<button class="flex-1 bg-secondary-container text-on-secondary-container font-button text-button py-2 rounded-lg active:scale-95 transition-all">View Details</button>
+</div>
+</div>
+</div>
+</div>
+<!-- General Notification: Appointment -->
+<div class="general-card bg-surface-container-lowest p-md rounded-xl shadow-[0px_4px_12px_rgba(29,53,87,0.05)]">
+<div class="flex gap-md">
+<div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-secondary">calendar_month</span>
+</div>
+<div class="flex-1">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-xs">Upcoming Appointment</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-md">Reminder: Your blood donation appointment at Central Clinic is tomorrow at 10:30 AM.</p>
+<button class="w-full border border-outline text-secondary font-button text-button py-2 rounded-lg active:scale-95 transition-all">Reschedule</button>
+</div>
+</div>
+</div>
+<!-- Urgent Notification Card 2 -->
+<div class="urgent-card bg-surface-container-lowest border-l-4 border-primary p-md rounded-xl shadow-[0px_4px_12px_rgba(29,53,87,0.05)] relative overflow-hidden">
+<div class="absolute top-0 right-0">
+<div class="bg-primary text-on-primary px-3 py-1 rounded-bl-xl font-label-md text-label-md">URGENT</div>
+</div>
+<div class="flex gap-md">
+<div class="w-12 h-12 rounded-full bg-primary-fixed flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-primary" data-weight="fill" style="font-variation-settings: 'FILL' 1;">medical_services</span>
+</div>
+<div class="flex-1">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-xs">B- Supply Low</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-sm">Regional Blood Bank reports critical stock levels for B- type donors.</p>
+<div class="flex items-center gap-sm mb-md text-primary font-label-md text-label-md">
+<span class="material-symbols-outlined text-[18px]">location_on</span>
+<span>3.5 miles away</span>
+</div>
+<button class="w-full bg-primary text-on-primary font-button text-button py-3 rounded-lg active:scale-95 transition-all shadow-md">Book a Slot</button>
+</div>
+</div>
+</div>
+<!-- General Notification: Achievement -->
+<div class="general-card bg-surface-container-lowest p-md rounded-xl shadow-[0px_4px_12px_rgba(29,53,87,0.05)]">
+<div class="flex gap-md items-center">
+<div class="w-12 h-12 rounded-full bg-tertiary-fixed flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-tertiary">military_tech</span>
+</div>
+<div class="flex-1">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-xs">New Achievement!</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">You've unlocked the "Lifesaver Gold" badge for your 10th donation.</p>
+</div>
+<span class="material-symbols-outlined text-outline-variant">chevron_right</span>
+</div>
+</div>
+<!-- Data Art Decoration -->
+<div class="pt-lg">
+<img class="w-full h-40 object-cover rounded-2xl grayscale opacity-30" data-alt="A clinical and sterile medical laboratory setting with focus on a digital screen displaying blood type compatibility charts and fluid animations. The background is brightly lit with cool white light, creating a professional and dependable atmosphere. Minimalist aesthetics with subtle deep red accents reflect a modern healthcare interface designed for efficiency and urgent medical communication." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBemQmjNpMjZojl4sPHTiTWorPghiYXNZ2-Znv2vPAdy-YnMuV74eVYkdxEcGv06uPy5B-eUKKhti83ge1ha0e65gM0t9zhGgNZfzL-7-1Al6DPVew07YqSQiDVUosgRn5MHME7hIgIJ8hyiXnToWbO_NQ8gfEOus2ik46fBeBWWtSTgfmwGWgNRp_IyvW60JGznUSbZ-bFFci1G4sCHi6wJ7frM7YOg5LFXFh9hFXjmJVhzEtT8W_8_uWxBnkIfev2dBdWaU5_fRM">
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center h-20 px-2 pb-safe bg-surface dark:bg-surface-dim z-50 shadow-[0px_-4px_12px_rgba(29,53,87,0.05)]">
+<button class="flex flex-col items-center justify-center bg-secondary-container dark:bg-on-secondary-fixed-variant text-on-secondary-container dark:text-secondary-fixed rounded-xl px-4 py-1 active:scale-90 transition-all duration-200">
+<span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="font-label-md text-label-md">Home</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-4 py-1 hover:bg-surface-container-low dark:hover:bg-on-surface-variant/5 active:scale-90 transition-all duration-200">
+<span class="material-symbols-outlined">map</span>
+<span class="font-label-md text-label-md">Map</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-4 py-1 hover:bg-surface-container-low dark:hover:bg-on-surface-variant/5 active:scale-90 transition-all duration-200">
+<span class="material-symbols-outlined">calendar_month</span>
+<span class="font-label-md text-label-md">Schedule</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-4 py-1 hover:bg-surface-container-low dark:hover:bg-on-surface-variant/5 active:scale-90 transition-all duration-200">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-md text-label-md">Profile</span>
+</button>
+</nav>
+<script>
+        function setFilter(type) {
+            const list = document.getElementById('notification-list');
+            const allBtn = document.getElementById('filter-all');
+            const urgentBtn = document.getElementById('filter-urgent');
+
+            if (type === 'urgent') {
+                list.classList.add('hide-general');
+                list.classList.remove('hide-urgent');
+                urgentBtn.classList.add('active-filter');
+                urgentBtn.classList.remove('text-on-surface-variant');
+                allBtn.classList.remove('active-filter');
+                allBtn.classList.add('text-on-surface-variant');
+            } else {
+                list.classList.remove('hide-general');
+                list.classList.remove('hide-urgent');
+                allBtn.classList.add('active-filter');
+                allBtn.classList.remove('text-on-surface-variant');
+                urgentBtn.classList.remove('active-filter');
+                urgentBtn.classList.add('text-on-surface-variant');
+            }
+        }
+    </script>
+</body></html>
