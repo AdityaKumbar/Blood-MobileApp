@@ -7,7 +7,15 @@ interface CurrentUserResponse {
   id: string;
   name: string;
   email?: string;
+  phone?: string;
+  avatarUrl?: string;
   role: AuthUser["role"];
+}
+
+interface UpdateCurrentUserPayload {
+  name?: string;
+  phone?: string;
+  avatarUrl?: string;
 }
 
 export async function getCurrentUser() {
@@ -17,6 +25,21 @@ export async function getCurrentUser() {
     id: user.id,
     fullName: user.name,
     email: user.email,
+    phone: user.phone,
+    avatarUrl: user.avatarUrl,
+    role: user.role
+  };
+}
+
+export async function updateCurrentUser(payload: UpdateCurrentUserPayload) {
+  const { data } = await apiClient.patch<ApiEnvelope<CurrentUserResponse>>(apiPaths.auth.profile, payload);
+  const user = unwrapApiData(data);
+  return {
+    id: user.id,
+    fullName: user.name,
+    email: user.email,
+    phone: user.phone,
+    avatarUrl: user.avatarUrl,
     role: user.role
   };
 }
