@@ -19,6 +19,25 @@ interface UpdateCurrentUserPayload {
   avatarUrl?: string;
 }
 
+function normalizeBloodGroup(value?: string) {
+  const trimmed = value?.trim();
+  return trimmed ? (trimmed as AuthUser["bloodGroup"]) : undefined;
+}
+
+function buildProfileUpdatePayload(payload: UpdateCurrentUserPayload) {
+  const body: UpdateCurrentUserPayload = {};
+
+  const name = payload.name?.trim();
+  const phone = payload.phone?.trim();
+  const avatarUrl = payload.avatarUrl?.trim();
+
+  if (name) body.name = name;
+  if (phone) body.phone = phone;
+  if (avatarUrl) body.avatarUrl = avatarUrl;
+
+  return body;
+}
+
 export async function getCurrentUser() {
   const { data } = await apiClient.get<ApiEnvelope<CurrentUserResponse>>(apiPaths.auth.profile);
   const user = unwrapApiData(data);
@@ -29,14 +48,14 @@ export async function getCurrentUser() {
     phone: user.phone,
     avatarUrl: user.avatarUrl,
     role: user.role,
-    bloodGroup: user.bloodGroup as AuthUser["bloodGroup"] | undefined
+    bloodGroup: normalizeBloodGroup(user.bloodGroup)
   };
 }
 
 export async function updateCurrentUser(payload: UpdateCurrentUserPayload) {
-  const { data } = await apiClient.put<ApiEnvelope<CurrentUserResponse>>(
+  const { data } = await apiClient.patch<ApiEnvelope<CurrentUserResponse>>(
     apiPaths.auth.profile,
-    payload
+    buildProfileUpdatePayload(payload)
   );
   return unwrapApiData(data);
 }

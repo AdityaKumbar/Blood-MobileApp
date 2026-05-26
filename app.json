@@ -15,7 +15,10 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "This app uses your location to show nearby hospitals and emergency requests for blood or oxygen."
+      }
     },
     "android": {
       "adaptiveIcon": {

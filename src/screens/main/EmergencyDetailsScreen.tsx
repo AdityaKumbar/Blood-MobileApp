@@ -71,8 +71,8 @@ export function EmergencyDetailsScreen({ route }: Props) {
           </Card>
 
           <Card>
-            <Text className="text-xs uppercase text-health-muted">Patient</Text>
-            <Text className="mt-1 text-base font-semibold text-health-text">{request.patientName}</Text>
+            <Text className="text-xs uppercase text-health-muted">{request.isInventory ? "Type" : "Patient"}</Text>
+            <Text className="mt-1 text-base font-semibold text-health-text">{request.isInventory ? "Inventory Stock" : request.patientName}</Text>
             <View className="mt-2">
               <InfoRow label="Hospital" value={request.hospital} />
               <InfoRow label="Contact" value={request.contactNumber} />

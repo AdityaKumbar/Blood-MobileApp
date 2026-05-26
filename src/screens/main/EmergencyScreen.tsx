@@ -53,18 +53,34 @@ export function EmergencyScreen({ navigation }: Props) {
 
   // Maps coordinates to feed items, fallback to presets if missing
   const geolocatedFeed = useMemo(() => {
-    return feed.map((item, idx) => {
-      let lat = item.latitude;
-      let lng = item.longitude;
-      if (!lat || !lng) {
-        const preset = BELAGAVI_PRESETS[idx % BELAGAVI_PRESETS.length];
-        lat = preset.latitude;
-        lng = preset.longitude;
+    const getRealCoordinates = (hospitalName: string, createdLat: any, createdLng: any, idx: number) => {
+      let lat = createdLat != null ? Number(createdLat) : null;
+      let lng = createdLng != null ? Number(createdLng) : null;
+      if (lat && lng && !isNaN(lat) && !isNaN(lng)) {
+        return { latitude: lat, longitude: lng };
       }
+
+      const name = (hospitalName || "").toLowerCase();
+      if (name.includes("kle")) {
+        return { latitude: 15.887074, longitude: 74.519596 }; // Real KLE Hospital
+      }
+      if (name.includes("venugram")) {
+        return { latitude: 15.825873, longitude: 74.497471 }; // Real Venugram Hospital
+      }
+      if (name.includes("lifestream") || name.includes("system admin")) {
+        return { latitude: 15.8352169, longitude: 74.5067137 }; // Real LifeStream Blood Bank
+      }
+
+      const preset = BELAGAVI_PRESETS[idx % BELAGAVI_PRESETS.length];
+      return { latitude: preset.latitude, longitude: preset.longitude };
+    };
+
+    return feed.map((item, idx) => {
+      const coords = getRealCoordinates(item.hospital, item.latitude, item.longitude, idx);
       return {
         ...item,
-        latitude: lat,
-        longitude: lng
+        latitude: coords.latitude,
+        longitude: coords.longitude
       };
     });
   }, [feed]);
@@ -93,7 +109,7 @@ export function EmergencyScreen({ navigation }: Props) {
           <RequestStatusBadge status={item.status} />
         </View>
         <Text className="mt-2 text-sm text-health-text">{item.hospital}</Text>
-        <Text className="mt-1 text-xs text-health-muted">Patient: {item.patientName}</Text>
+        <Text className="mt-1 text-xs text-health-muted">{item.isInventory ? "Inventory Stock Request" : `Patient: ${item.patientName}`}</Text>
         <Text className="mt-1 text-xs text-health-muted">Contact: {item.contactNumber}</Text>
         <Text className="mt-1 text-xs text-health-muted">
           Urgency: {item.urgency} {item.oxygenNeeded ? "- Oxygen needed" : ""}
@@ -277,7 +293,7 @@ export function EmergencyScreen({ navigation }: Props) {
                     {selectedMapRequest.hospital}
                   </Text>
                   <Text className="text-xs text-health-muted mt-0.5">
-                    Patient: {selectedMapRequest.patientName} • Group: {selectedMapRequest.bloodGroup}
+                    {selectedMapRequest.isInventory ? "Inventory Stock" : `Patient: ${selectedMapRequest.patientName}`} • Group: {selectedMapRequest.bloodGroup}
                   </Text>
                   <Text className="text-xs font-bold text-[#b7102a] mt-1.5">
                     Required: {selectedMapRequest.unitsRequired} {selectedMapRequest.oxygenNeeded ? "Units" : "Bags"}

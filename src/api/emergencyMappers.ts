@@ -13,6 +13,7 @@ export interface BackendEmergencyRequest {
   contactNumber?: string;
   createdAt: string;
   updatedAt: string;
+  isInventory?: boolean;
   createdBy?: {
     _id?: string;
     name?: string;
@@ -46,6 +47,7 @@ export function mapEmergencyItem(item: BackendEmergencyRequest): EmergencyReques
     updatedAt: item.updatedAt,
     latitude: item.createdBy?.latitude ?? null,
     longitude: item.createdBy?.longitude ?? null,
-    address: item.createdBy?.address ?? null
+    address: item.createdBy?.address ?? null,
+    isInventory: !!item.isInventory
   };
 }

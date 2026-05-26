@@ -39,7 +39,7 @@ export function EmergencyFeedScreen() {
               {item.bloodGroup} - {item.unitsRequired} units
             </Text>
             <Text className="mt-1 text-sm text-health-muted">{item.hospital}</Text>
-            <Text className="mt-1 text-xs text-brand-700">Patient: {item.patientName}</Text>
+            <Text className="mt-1 text-xs text-brand-700">{item.isInventory ? "Inventory Stock Request" : `Patient: ${item.patientName}`}</Text>
           </Card>
         )}
       />

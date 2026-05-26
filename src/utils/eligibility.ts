@@ -1,7 +1,6 @@
 import type { DonorEligibility } from "../types/donor";
 
-export const RECOVERY_WEEKS = 8;
-export const RECOVERY_DAYS = RECOVERY_WEEKS * 7;
+export const RECOVERY_DAYS = 90;
 
 export type EligibilityDisplay = {
   message: string;
@@ -47,7 +46,7 @@ export function getEligibilityDisplay(
       message: "You have not donated yet. You are eligible to donate whenever you are ready.",
       progressPercent: 0,
       lastLabel: "No donations yet",
-      targetLabel: "Eligible now",
+      targetLabel: "",
       showProgress: false,
     };
   }

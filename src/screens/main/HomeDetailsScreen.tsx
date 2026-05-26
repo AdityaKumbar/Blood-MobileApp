@@ -145,9 +145,11 @@ export function HomeDetailsScreen({ route, navigation }: Props) {
               Case Context
             </Text>
             <Text className="text-sm text-[#001b3c] leading-relaxed">
-              {request?.patientName 
-                ? `Emergency ${request.oxygenNeeded ? "Oxygen Setup" : "Surgery"} - A patient named ${request.patientName} requires urgent ${request.oxygenNeeded ? `${request.unitsRequired} Liters of Oxygen` : `${request.bloodGroup} Blood`} for a critical medical procedure.` 
-                : `Emergency Procedure - A patient requires ${request?.oxygenNeeded ? "Oxygen cylinders" : "Blood transfusion"} at the earliest.`}
+              {request?.isInventory
+                ? `Inventory Stock Replenishment - The ${request.hospital || "blood bank"} is requesting ${request.oxygenNeeded ? `${request.unitsRequired} Flasks of Oxygen` : `${request.bloodGroup} Blood`} to replenish their inventory reserves for future emergencies.`
+                : (request?.patientName 
+                  ? `Emergency ${request.oxygenNeeded ? "Oxygen Setup" : "Surgery"} - A patient named ${request.patientName} requires urgent ${request.oxygenNeeded ? `${request.unitsRequired} Liters of Oxygen` : `${request.bloodGroup} Blood`} for a critical medical procedure.` 
+                  : `Emergency Procedure - A patient requires ${request?.oxygenNeeded ? "Oxygen cylinders" : "Blood transfusion"} at the earliest.`)}
             </Text>
           </View>
 
@@ -175,26 +177,47 @@ export function HomeDetailsScreen({ route, navigation }: Props) {
 
           {/* Real Map Visual */}
           <View className="h-[180px] rounded-3xl overflow-hidden border border-[#EAECEF]">
-            <MapView
-              provider={PROVIDER_GOOGLE}
-              style={{ width: "100%", height: "100%" }}
-              initialRegion={{
-                latitude: request?.latitude || 15.8497,
-                longitude: request?.longitude || 74.4977,
-                latitudeDelta: 0.015,
-                longitudeDelta: 0.015
-              }}
-            >
-              <Marker
-                coordinate={{
-                  latitude: request?.latitude || 15.8497,
-                  longitude: request?.longitude || 74.4977
-                }}
-                title={request?.hospital || "Hospital"}
-                description={request?.address || "Belagavi, India"}
-                pinColor="#b7102a"
-              />
-            </MapView>
+            {(() => {
+              let lat = request?.latitude != null ? Number(request.latitude) : null;
+              let lng = request?.longitude != null ? Number(request.longitude) : null;
+              
+              if (!lat || !lng || isNaN(lat) || isNaN(lng)) {
+                const name = (request?.hospital || "").toLowerCase();
+                if (name.includes("kle")) {
+                  lat = 15.887074;
+                  lng = 74.519596;
+                } else if (name.includes("venugram")) {
+                  lat = 15.825873;
+                  lng = 74.497471;
+                } else if (name.includes("lifestream") || name.includes("system admin")) {
+                  lat = 15.8352169;
+                  lng = 74.5067137;
+                } else {
+                  lat = 15.8497;
+                  lng = 74.4977;
+                }
+              }
+              
+              return (
+                <MapView
+                  provider={PROVIDER_GOOGLE}
+                  style={{ width: "100%", height: "100%" }}
+                  initialRegion={{
+                    latitude: lat,
+                    longitude: lng,
+                    latitudeDelta: 0.015,
+                    longitudeDelta: 0.015
+                  }}
+                >
+                  <Marker
+                    coordinate={{ latitude: lat, longitude: lng }}
+                    title={request?.hospital || "Hospital"}
+                    description={request?.address || "Belagavi, India"}
+                    pinColor="#b7102a"
+                  />
+                </MapView>
+              );
+            })()}
           </View>
 
           {/* Actions Section */}

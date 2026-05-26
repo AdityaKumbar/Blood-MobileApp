@@ -10,6 +10,7 @@ import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { setProfileInfo } from "../../redux/slices/profileSettingsSlice";
 import { updateCurrentUser } from "../../api/userApi";
 import { fetchCurrentUser } from "../../redux/slices/authSlice";
+import { extractErrorMessage } from "../../utils/error";
 import { PROFILE_ROUTES } from "../../navigation/constants";
 import type { ProfileStackScreenProps } from "../../navigation/types";
 
@@ -75,7 +76,7 @@ export function EditProfileScreen({ navigation }: Props) {
       await updateCurrentUser({
         name: trimmedName,
         phone: trimmedPhone,
-        avatarUrl: avatarUri || ""
+        ...(avatarUri.trim() ? { avatarUrl: avatarUri.trim() } : {})
       });
 
       dispatch(
@@ -90,8 +91,11 @@ export function EditProfileScreen({ navigation }: Props) {
       Alert.alert("Success", "Profile details updated successfully!", [
         { text: "OK", onPress: () => navigation.goBack() }
       ]);
-    } catch {
-      Alert.alert("Update failed", "Unable to update profile right now. Please try again.");
+    } catch (error) {
+      Alert.alert(
+        "Update failed",
+        extractErrorMessage(error, "Unable to update profile right now. Please try again.")
+      );
     } finally {
       setIsSaving(false);
     }

@@ -36,9 +36,9 @@ export function HomeScreen({ navigation }: Props) {
       return {
         id: item.id,
         hospital: item.hospital,
-        unit: item.patientName ? `Patient: ${item.patientName}` : "Main Campus",
+        unit: item.isInventory ? "Inventory Stock" : (item.patientName ? `Patient: ${item.patientName}` : "Main Campus"),
         bloodGroup: item.bloodGroup as any,
-        stockStatus: isCritical ? "Critical Stock" : "Low Stock",
+        stockStatus: item.isInventory ? "Inventory Request" : (isCritical ? "Critical Stock" : "Low Stock"),
         distance: `${(1.2 + idx * 1.5).toFixed(1)} miles away`,
         isCritical,
         liveItem: item as any
