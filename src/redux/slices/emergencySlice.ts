@@ -132,7 +132,6 @@ const emergencySlice = createSlice({
       })
       .addCase(createEmergencyRequest.fulfilled, (state, action) => {
         state.createStatus = "succeeded";
-        state.feed = dedupeById([action.payload, ...state.feed]);
         state.selectedRequest = action.payload;
       })
       .addCase(createEmergencyRequest.rejected, (state, action) => {

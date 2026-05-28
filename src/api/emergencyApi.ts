@@ -12,6 +12,7 @@ interface BackendEmergencyListData {
 }
 
 export async function createEmergencyRequest(payload: CreateEmergencyRequestPayload) {
+  const sanitizedContactNumber = payload.contactNumber?.trim() || undefined;
   const { data } = await apiClient.post<ApiEnvelope<BackendEmergencyRequest>>(apiPaths.emergency.create, {
     patientName: payload.patientName,
     requestType: payload.oxygenNeeded ? "OXYGEN" : "BLOOD",
@@ -20,7 +21,7 @@ export async function createEmergencyRequest(payload: CreateEmergencyRequestPayl
     oxygenUnits: payload.oxygenNeeded ? payload.unitsRequired : undefined,
     hospital: payload.hospital,
     priority: payload.urgency,
-    contactNumber: payload.contactNumber
+    contactNumber: sanitizedContactNumber
   });
   return mapEmergencyItem(unwrapApiData(data));
 }
@@ -28,6 +29,13 @@ export async function createEmergencyRequest(payload: CreateEmergencyRequestPayl
 export async function fetchEmergencyFeed() {
   const { data } = await apiClient.get<ApiEnvelope<BackendEmergencyListData>>(apiPaths.emergency.feed, {
     params: { forApp: true, limit: 50 }
+  });
+  return unwrapApiData(data).items.map(mapEmergencyItem);
+}
+
+export async function fetchMyEmergencyRequests() {
+  const { data } = await apiClient.get<ApiEnvelope<BackendEmergencyListData>>(apiPaths.emergency.feed, {
+    params: { mine: true, limit: 20 }
   });
   return unwrapApiData(data).items.map(mapEmergencyItem);
 }

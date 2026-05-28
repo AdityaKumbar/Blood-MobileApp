@@ -37,10 +37,21 @@ export function useRealtimeUpdates() {
       return mapEmergencyItem(payload);
     };
 
-    const onEmergencyCreate = (payload: EmergencyRequest | BackendEmergencyRequest) =>
-      dispatch(prependEmergencyUpdate(normalizeEmergencyPayload(payload)));
-    const onEmergencyUpdate = (payload: EmergencyRequest | BackendEmergencyRequest) =>
-      dispatch(upsertEmergencyUpdate(normalizeEmergencyPayload(payload)));
+    const isForwardedForApp = (item: EmergencyRequest) =>
+      item.backendStatus === "FORWARDED_TO_APP" ||
+      item.backendStatus === "ASSIGNED" ||
+      item.backendStatus === "RESOLVED";
+
+    const onEmergencyCreate = (payload: EmergencyRequest | BackendEmergencyRequest) => {
+      const normalized = normalizeEmergencyPayload(payload);
+      if (!isForwardedForApp(normalized)) return;
+      dispatch(prependEmergencyUpdate(normalized));
+    };
+    const onEmergencyUpdate = (payload: EmergencyRequest | BackendEmergencyRequest) => {
+      const normalized = normalizeEmergencyPayload(payload);
+      if (!isForwardedForApp(normalized)) return;
+      dispatch(upsertEmergencyUpdate(normalized));
+    };
     const onNotificationNew = (payload: AppNotification) =>
       dispatch(
         prependNotification({

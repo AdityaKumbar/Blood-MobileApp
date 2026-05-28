@@ -1,7 +1,7 @@
-import { useEffect, useMemo } from "react";
+﻿import { useEffect, useMemo } from "react";
 import { Image, Pressable, ScrollView, Text, View, Alert, Platform, Linking } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, { Marker } from "react-native-maps";
 
 import { Screen } from "../../components/ui/Screen";
 import { Card } from "../../components/ui/Card";
@@ -200,7 +200,6 @@ export function HomeDetailsScreen({ route, navigation }: Props) {
               
               return (
                 <MapView
-                  provider={PROVIDER_GOOGLE}
                   style={{ width: "100%", height: "100%" }}
                   initialRegion={{
                     latitude: lat,

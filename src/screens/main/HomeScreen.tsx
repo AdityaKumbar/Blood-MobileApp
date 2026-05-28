@@ -1,6 +1,7 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import * as Location from "expo-location";
 
 import { Screen } from "../../components/ui/Screen";
 import { HOME_ROUTES, TAB_ROUTES } from "../../navigation/constants";
@@ -18,6 +19,7 @@ export function HomeScreen({ navigation }: Props) {
   const auth = useAppSelector((state) => state.auth);
   const { feed, feedStatus } = useAppSelector((state) => state.emergency);
   const donor = useAppSelector((state) => state.donor);
+  const [userLocation, setUserLocation] = useState<Location.LocationObject | null>(null);
 
   const urgentFeed = useMemo(() => feed.filter((item) => item.status !== "FULFILLED"), [feed]);
 
@@ -29,81 +31,53 @@ export function HomeScreen({ navigation }: Props) {
     return getEligibilityDisplay(donor.eligibility, lastDonatedAt);
   }, [donor.eligibility, donor.lastDonatedAt, donor.history]);
 
-  // Combine live feed with mockup cards as fallback so the visual is exactly like the mockup
+  const formatDistanceFromUser = (lat?: number | null, lng?: number | null) => {
+    if (!userLocation?.coords || typeof lat !== "number" || typeof lng !== "number") {
+      return "Distance unavailable";
+    }
+    const toRad = (v: number) => (v * Math.PI) / 180;
+    const earthRadiusM = 6371000;
+    const dLat = toRad(lat - userLocation.coords.latitude);
+    const dLng = toRad(lng - userLocation.coords.longitude);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(userLocation.coords.latitude)) *
+        Math.cos(toRad(lat)) *
+        Math.sin(dLng / 2) *
+        Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distanceM = earthRadiusM * c;
+    if (distanceM < 1000) return `${Math.round(distanceM)} m away`;
+    return `${(distanceM / 1000).toFixed(1)} km away`;
+  };
+
   const requestsToShow = useMemo(() => {
-    const live = urgentFeed.map((item, idx) => {
+    return urgentFeed.slice(0, 4).map((item) => {
       const isCritical = item.urgency === "CRITICAL" || item.urgency === "HIGH";
       return {
         id: item.id,
         hospital: item.hospital,
-        unit: item.isInventory ? "Inventory Stock" : (item.patientName ? `Patient: ${item.patientName}` : "Main Campus"),
+        patientLabel: item.isInventory
+          ? "Inventory Stock"
+          : `Patient: ${item.patientName || "Anonymous Patient"}`,
         bloodGroup: item.bloodGroup as any,
         stockStatus: item.isInventory ? "Inventory Request" : (isCritical ? "Critical Stock" : "Low Stock"),
-        distance: `${(1.2 + idx * 1.5).toFixed(1)} miles away`,
+        distance: formatDistanceFromUser(item.latitude, item.longitude),
         isCritical,
         liveItem: item as any
       };
     });
-
-    if (live.length >= 3) {
-      return live.slice(0, 4);
-    }
-
-    const fallbacks = [
-      {
-        id: "mock-1",
-        hospital: "Central Medical Center",
-        unit: "Main Campus - Unit 4B",
-        bloodGroup: "O+" as any,
-        stockStatus: "Critical Stock",
-        distance: "2.4 miles away",
-        isCritical: true,
-        liveItem: null as any
-      },
-      {
-        id: "mock-2",
-        hospital: "St. Jude Trauma Care",
-        unit: "Emergency Ward",
-        bloodGroup: "AB-" as any,
-        stockStatus: "Critical Stock",
-        distance: "5.1 miles away",
-        isCritical: true,
-        liveItem: null as any
-      },
-      {
-        id: "mock-3",
-        hospital: "City Red Cross",
-        unit: "Community Hub",
-        bloodGroup: "A+" as any,
-        stockStatus: "Low Stock",
-        distance: "0.8 miles away",
-        isCritical: false,
-        liveItem: null as any
-      }
-    ];
-
-    const combined = [...live];
-    for (const fb of fallbacks) {
-      if (combined.length < 3 && !combined.some(x => x.bloodGroup === fb.bloodGroup && x.hospital === fb.hospital)) {
-        combined.push(fb);
-      }
-    }
-    return combined as Array<{
-      id: string;
-      hospital: string;
-      unit: string;
-      bloodGroup: "A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-";
-      stockStatus: string;
-      distance: string;
-      isCritical: boolean;
-      liveItem: any;
-    }>;
-  }, [urgentFeed]);
+  }, [urgentFeed, userLocation]);
 
   useEffect(() => {
     void dispatch(fetchEmergencyFeed());
     void dispatch(fetchDonorProfile());
     void dispatch(fetchDonationHistory());
+    void Location.requestForegroundPermissionsAsync().then((result) => {
+      if (result.status === "granted") {
+        void Location.getCurrentPositionAsync({}).then(setUserLocation).catch(() => {});
+      }
+    });
   }, [dispatch]);
 
   return (
@@ -148,7 +122,7 @@ export function HomeScreen({ navigation }: Props) {
             <Ionicons name="checkmark-circle-outline" size={20} color="#fff" />
           </View>
           <Text className="text-[13px] text-white opacity-90 leading-relaxed mb-5">
-            Your commitment to donating blood is saving lives every month. You are a community hero.
+            Your commitment to donating blood is saving lives. You are a community hero.
           </Text>
           <View className="items-center border-t border-white/20 pt-4">
             <Text className="text-2xl font-extrabold text-white">
@@ -182,6 +156,18 @@ export function HomeScreen({ navigation }: Props) {
           <View className="py-4 items-center">
             <ActivityIndicator color="#b7102a" />
             <Text className="text-xs text-[#5b403f] mt-2">Loading live requests...</Text>
+          </View>
+        ) : null}
+
+        {feedStatus !== "loading" && requestsToShow.length === 0 ? (
+          <View className="bg-white rounded-3xl p-5 border border-[#EAECEF] shadow-sm items-center">
+            <Ionicons name="checkmark-circle-outline" size={22} color="#2b6485" />
+            <Text className="text-sm font-semibold text-[#001b3c] mt-2">
+              No live urgent requests right now
+            </Text>
+            <Text className="text-xs text-[#5b403f] mt-1 text-center">
+              You are all caught up. Check again soon for new nearby requests.
+            </Text>
           </View>
         ) : null}
 
@@ -231,10 +217,10 @@ export function HomeScreen({ navigation }: Props) {
               </View>
               <View className="flex-1">
                 <Text className="text-base font-bold text-[#001b3c]">
-                  {item.hospital}
+                  {item.patientLabel}
                 </Text>
                 <Text className="text-xs text-[#5b403f] mt-0.5">
-                  {item.unit}
+                  {item.hospital}
                 </Text>
               </View>
             </View>
@@ -243,11 +229,7 @@ export function HomeScreen({ navigation }: Props) {
               <Pressable
                 className="flex-1 h-10 bg-[#b7102a] rounded-xl flex-row items-center justify-center gap-x-1 active:opacity-90"
                 onPress={() => {
-                  if (item.liveItem) {
-                    navigation.navigate(HOME_ROUTES.HOME_DETAILS, { requestId: item.liveItem.id });
-                  } else {
-                    navigation.navigate(TAB_ROUTES.EMERGENCY_TAB as any);
-                  }
+                  navigation.navigate(HOME_ROUTES.HOME_DETAILS, { requestId: item.liveItem.id });
                 }}
               >
                 <Text className="color-white text-sm font-bold">Donate Now</Text>

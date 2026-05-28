@@ -1,7 +1,7 @@
-import { useEffect, useState, useMemo } from "react";
+﻿import { useEffect, useState, useMemo } from "react";
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View, Platform, Linking } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, { Marker } from "react-native-maps";
 
 import { EmergencyRequestForm } from "../../components/emergency/EmergencyRequestForm";
 import { RequestStatusBadge } from "../../components/emergency/RequestStatusBadge";
@@ -238,7 +238,6 @@ export function EmergencyScreen({ navigation }: Props) {
         /* Map View Section */
         <View className="flex-1 mt-4 relative bg-gray-50 overflow-hidden">
           <MapView
-            provider={PROVIDER_GOOGLE}
             className="w-full h-full"
             initialRegion={{
               latitude: 15.8497,

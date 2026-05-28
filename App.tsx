@@ -4,13 +4,13 @@ import { Alert, Image, Pressable, SafeAreaView, ScrollView, StyleSheet, Switch, 
 import { Provider } from "react-redux";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
 
 import { store } from "./src/redux/store";
 import { useAppDispatch, useAppSelector } from "./src/redux/hooks";
 import { bootstrapAuth, loginUser, logoutUser, registerUser } from "./src/redux/slices/authSlice";
-import { acceptEmergencyDonation, fetchEmergencyDetails, fetchEmergencyFeed } from "./src/redux/slices/emergencySlice";
+import { acceptEmergencyDonation, createEmergencyRequest, fetchEmergencyDetails, fetchEmergencyFeed } from "./src/redux/slices/emergencySlice";
 import { AppBrand } from "./src/components/branding/AppBrand";
 import { fetchDonorProfile, fetchDonationHistory } from "./src/redux/slices/donorSlice";
 import { NextEligibilityCard } from "./src/components/donor/NextEligibilityCard";
@@ -18,6 +18,8 @@ import { formatDonationType } from "./src/utils/donation";
 import { getEligibilityDisplay, resolveLastDonatedAt } from "./src/utils/eligibility";
 import { fetchNotifications } from "./src/redux/slices/notificationSlice";
 import { setProfileInfo } from "./src/redux/slices/profileSettingsSlice";
+import { searchResources } from "./src/api/searchApi";
+import { fetchMyEmergencyRequests } from "./src/api/emergencyApi";
 
 type Route = "login" | "signup" | "dashboard" | "map" | "requestDetails" | "requests" | "history" | "profile" | "notifications" | "editProfile";
 
@@ -75,6 +77,11 @@ function AppContent() {
   const [selectedHospitalMarker, setSelectedHospitalMarker] = useState<any | null>(null);
   const [mapFilter, setMapFilter] = useState<"all" | "blood" | "oxygen">("all");
   const [selectedBloodGroup, setSelectedBloodGroup] = useState<string>("All");
+  const [quickRequestType, setQuickRequestType] = useState<"blood" | "oxygen">("blood");
+  const [quickHospitalOpen, setQuickHospitalOpen] = useState(false);
+  const [quickHospital, setQuickHospital] = useState("KLE Hospital");
+  const [approvedHospitals, setApprovedHospitals] = useState<string[]>([]);
+  const [myImmediateRequests, setMyImmediateRequests] = useState<any[]>([]);
 
   const requestLocationPermission = async (shouldCenter = false) => {
     try {
@@ -147,9 +154,9 @@ function AppContent() {
     }
   }, [selectedHospitalMarker, route]);
 
-  const formatDistanceFromUser = (lat?: number, lng?: number) => {
+  const formatDistanceFromUser = (lat?: number | null, lng?: number | null) => {
     if (!userLocation?.coords || typeof lat !== "number" || typeof lng !== "number") {
-      return "Distance unavailable";
+      return "📍 Turn on location to see distance";
     }
     const toRad = (v: number) => (v * Math.PI) / 180;
     const earthRadiusM = 6371000;
@@ -169,7 +176,7 @@ function AppContent() {
 
   const urgentFeed = useMemo(() => emergency.feed.filter((item) => item.status !== "FULFILLED"), [emergency.feed]);
 
-  // Combined verified requests from admin/live feed and fallback items
+  // Combined verified requests from live feed
   const allRequestsList = useMemo(() => {
     const BELAGAVI_PRESETS = [
       { latitude: 15.8497, longitude: 74.4977 }, // Channamma Circle
@@ -218,7 +225,7 @@ function AppContent() {
         status: (item.status || "OPEN") as any,
         backendStatus: (item.backendStatus || "FORWARDED_TO_APP") as any,
         createdAt: item.createdAt || new Date().toISOString(),
-        distance: `${(1.2 + idx * 0.8).toFixed(1)} miles away`,
+        distance: formatDistanceFromUser(coords.latitude, coords.longitude),
         latitude: coords.latitude,
         longitude: coords.longitude,
         address: item.address || "450 Medical Center Drive, West District, Metro City 10293",
@@ -226,103 +233,7 @@ function AppContent() {
       };
     });
 
-    const fallbacks = [
-      {
-        id: "mock-r1",
-        patientName: "Sarah Jenkins",
-        bloodGroup: "O+",
-        unitsRequired: 3,
-        hospital: "Central Medical Center",
-        urgency: "CRITICAL",
-        oxygenNeeded: false,
-        contactNumber: "+15550199",
-        status: "OPEN",
-        backendStatus: "FORWARDED_TO_APP",
-        createdAt: new Date(Date.now() - 3600000 * 2).toISOString(), // 2 hours ago
-        distance: "2.4 miles away",
-        latitude: 15.8497,
-        longitude: 74.4977,
-        address: "450 Medical Center Drive, West District, Metro City 10293",
-        liveItem: null as any
-      },
-      {
-        id: "mock-r2",
-        patientName: "Robert Chen",
-        bloodGroup: "A-",
-        unitsRequired: 2,
-        hospital: "St. Jude Trauma Care",
-        urgency: "HIGH",
-        oxygenNeeded: false,
-        contactNumber: "+15550244",
-        status: "OPEN",
-        backendStatus: "FORWARDED_TO_APP",
-        createdAt: new Date(Date.now() - 3600000 * 5).toISOString(), // 5 hours ago
-        distance: "5.1 miles away",
-        latitude: 15.8400,
-        longitude: 74.5020,
-        address: "789 Trauma Circle, East District, Belagavi 590001",
-        liveItem: null as any
-      },
-      {
-        id: "mock-r3",
-        patientName: "Maria Rodriguez",
-        bloodGroup: "B+",
-        unitsRequired: 5,
-        hospital: "Metro Pulmonary Clinic",
-        urgency: "MEDIUM",
-        oxygenNeeded: true, // Oxygen Request!
-        contactNumber: "+15550388",
-        status: "OPEN",
-        backendStatus: "FORWARDED_TO_APP",
-        createdAt: new Date(Date.now() - 3600000 * 12).toISOString(), // 12 hours ago
-        distance: "4.8 miles away",
-        latitude: 15.8590,
-        longitude: 74.5080,
-        address: "101 Breathing Way, Camp Area, Belagavi 590009",
-        liveItem: null as any
-      },
-      {
-        id: "mock-r4",
-        patientName: "David Kim",
-        bloodGroup: "AB-",
-        unitsRequired: 1,
-        hospital: "City Red Cross",
-        urgency: "LOW",
-        oxygenNeeded: false,
-        contactNumber: "+15550422",
-        status: "FULFILLED", // Resolved!
-        backendStatus: "RESOLVED",
-        createdAt: new Date(Date.now() - 3600000 * 24).toISOString(), // 1 day ago
-        distance: "0.8 miles away",
-        latitude: 15.8320,
-        longitude: 74.5120,
-        address: "202 Blood Bank Blvd, Tilakwadi, Belagavi 590006",
-        liveItem: null as any
-      },
-      {
-        id: "mock-r5",
-        patientName: "Elena Rostova",
-        bloodGroup: "O-",
-        unitsRequired: 10,
-        hospital: "General Hospital",
-        urgency: "CRITICAL",
-        oxygenNeeded: true, // Oxygen Request!
-        contactNumber: "+15550577",
-        status: "FULFILLED", // Resolved!
-        backendStatus: "RESOLVED",
-        createdAt: new Date(Date.now() - 3600000 * 36).toISOString(), // 1.5 days ago
-        distance: "2.1 miles away",
-        latitude: 15.8370,
-        longitude: 74.4920,
-        address: "555 Healthcare Ave, Hindwadi, Belagavi 590011",
-        liveItem: null as any
-      }
-    ];
-
-    if (live.length > 0) {
-      return live;
-    }
-    return fallbacks;
+    return live;
   }, [emergency.feed]);
 
   const filteredMapRequests = useMemo(() => {
@@ -353,7 +264,7 @@ function AppContent() {
     for (const item of filteredMapRequests) {
       const lat = item.latitude!;
       const lng = item.longitude!;
-      const key = `${lat.toFixed(5)}|${lng.toFixed(5)}|${(item.hospital || "").toLowerCase()}`;
+      const key = `${lat.toFixed(5)}|${lng.toFixed(5)}`;
       const bucket = groups.get(key) ?? [];
       bucket.push(item);
       groups.set(key, bucket);
@@ -410,76 +321,33 @@ function AppContent() {
     });
   }, [allRequestsList, reqSearchQuery, reqFilterType, reqFilterUrgency, reqFilterStatus]);
 
-  // Combine live feed with mockup cards as fallback so the visual is exactly like the image
   const requestsToShow = useMemo(() => {
-    const live = urgentFeed.map((item, idx) => {
+    return urgentFeed.slice(0, 4).map((item) => {
       const isCritical = item.urgency === "CRITICAL" || item.urgency === "HIGH";
       return {
         id: item.id,
         hospital: item.hospital,
-        unit: item.patientName ? `Patient: ${item.patientName}` : "Main Campus",
+        patientLabel: item.isInventory
+          ? "Inventory Stock"
+          : `Patient: ${item.patientName || "Anonymous Patient"}`,
         bloodGroup: item.bloodGroup as any,
         stockStatus: isCritical ? "Critical Stock" : "Low Stock",
-        distance: `${(1.2 + idx * 1.5).toFixed(1)} miles away`,
+        distance: formatDistanceFromUser(item.latitude, item.longitude),
         isCritical,
         liveItem: item as any
       };
     });
+  }, [urgentFeed, userLocation]);
 
-    if (live.length >= 3) {
-      return live.slice(0, 4);
+  const quickHospitalOptions = useMemo(() => {
+    return approvedHospitals;
+  }, [approvedHospitals]);
+
+  useEffect(() => {
+    if (quickHospitalOptions.length > 0 && !quickHospitalOptions.includes(quickHospital)) {
+      setQuickHospital(quickHospitalOptions[0]);
     }
-
-    const fallbacks = [
-      {
-        id: "mock-1",
-        hospital: "Central Medical Center",
-        unit: "Main Campus - Unit 4B",
-        bloodGroup: "O+" as any,
-        stockStatus: "Critical Stock",
-        distance: "2.4 miles away",
-        isCritical: true,
-        liveItem: null as any
-      },
-      {
-        id: "mock-2",
-        hospital: "St. Jude Trauma Care",
-        unit: "Emergency Ward",
-        bloodGroup: "AB-" as any,
-        stockStatus: "Critical Stock",
-        distance: "5.1 miles away",
-        isCritical: true,
-        liveItem: null as any
-      },
-      {
-        id: "mock-3",
-        hospital: "City Red Cross",
-        unit: "Community Hub",
-        bloodGroup: "A+" as any,
-        stockStatus: "Low Stock",
-        distance: "0.8 miles away",
-        isCritical: false,
-        liveItem: null as any
-      }
-    ];
-
-    const combined = [...live];
-    for (const fb of fallbacks) {
-      if (combined.length < 3 && !combined.some(x => x.bloodGroup === fb.bloodGroup && x.hospital === fb.hospital)) {
-        combined.push(fb);
-      }
-    }
-    return combined as Array<{
-      id: string;
-      hospital: string;
-      unit: string;
-      bloodGroup: "A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-";
-      stockStatus: string;
-      distance: string;
-      isCritical: boolean;
-      liveItem: any;
-    }>;
-  }, [urgentFeed]);
+  }, [quickHospitalOptions, quickHospital]);
 
   const eligibilityDisplay = useMemo(() => {
     const lastDonatedAt = resolveLastDonatedAt(donor.lastDonatedAt, donor.history[0]?.donatedAt);
@@ -517,6 +385,73 @@ function AppContent() {
       setRoute("login");
     }
   }, [auth.status, dispatch]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadApprovedHospitals = async () => {
+      if (auth.status !== "authenticated") {
+        if (isMounted) setApprovedHospitals([]);
+        return;
+      }
+      try {
+        const results = await searchResources({
+          query: "",
+          bloodGroup: "ALL",
+          availability: "all",
+          includeBlood: false,
+          includeOxygen: false,
+          includeHospitals: true
+        });
+        if (!isMounted) return;
+        const names = [
+          ...new Set(
+            results
+              .filter((item) => item.type === "hospital")
+              .map((item) => item.name?.trim())
+              .filter(Boolean) as string[]
+          )
+        ];
+        setApprovedHospitals(names);
+      } catch {
+        if (isMounted) setApprovedHospitals([]);
+      }
+    };
+    void loadApprovedHospitals();
+    return () => {
+      isMounted = false;
+    };
+  }, [auth.status]);
+
+  useEffect(() => {
+    let isMounted = true;
+    let timer: ReturnType<typeof setInterval> | null = null;
+
+    const loadMyImmediateRequests = async () => {
+      if (auth.status !== "authenticated") {
+        if (isMounted) setMyImmediateRequests([]);
+        return;
+      }
+      try {
+        const rows = await fetchMyEmergencyRequests();
+        if (!isMounted) return;
+        setMyImmediateRequests(rows.slice(0, 6));
+      } catch {
+        if (isMounted) setMyImmediateRequests([]);
+      }
+    };
+
+    void loadMyImmediateRequests();
+    if (route === "dashboard" && auth.status === "authenticated") {
+      timer = setInterval(() => {
+        void loadMyImmediateRequests();
+      }, 15000);
+    }
+
+    return () => {
+      isMounted = false;
+      if (timer) clearInterval(timer);
+    };
+  }, [auth.status, route]);
 
   useEffect(() => {
     if (selectedEmergencyId) {
@@ -640,6 +575,51 @@ function AppContent() {
     });
   };
 
+  const handleQuickEmergencyRequest = async () => {
+    const patientName = profileSettings.profileInfo.fullName?.trim() || auth.user?.fullName?.trim() || "";
+    const contactNumber = profileSettings.profileInfo.phone?.trim() || auth.user?.phone?.trim() || "";
+    const userBloodGroup = (auth.user?.bloodGroup || bloodGroup || "O+") as any;
+
+    if (!patientName) {
+      Alert.alert("Name missing", "Please update your profile name before posting a request.");
+      return;
+    }
+    if (contactNumber && !/^[0-9]{10,14}$/.test(contactNumber)) {
+      Alert.alert("Invalid phone", "Phone number must be 10 to 14 digits.");
+      return;
+    }
+    if (!quickHospital.trim() || !quickHospitalOptions.includes(quickHospital)) {
+      Alert.alert("Hospital unavailable", "No approved hospital is available right now. Please try again shortly.");
+      return;
+    }
+
+    try {
+      await dispatch(
+        createEmergencyRequest({
+          patientName,
+          bloodGroup: userBloodGroup,
+          unitsRequired: quickRequestType === "oxygen" ? 5 : 1,
+          hospital: quickHospital.trim(),
+          urgency: "CRITICAL",
+          oxygenNeeded: quickRequestType === "oxygen",
+          contactNumber
+        })
+      ).unwrap();
+
+      Alert.alert(
+        "Request submitted",
+        `Your urgent ${quickRequestType === "oxygen" ? "oxygen" : "blood"} request has been sent to admin for review. Waiting for admin forwarding. It will appear in the app feed after admin forwards it.`
+      );
+      setQuickHospitalOpen(false);
+      void dispatch(fetchEmergencyFeed());
+      void fetchMyEmergencyRequests()
+        .then((rows) => setMyImmediateRequests(rows.slice(0, 6)))
+        .catch(() => {});
+    } catch (err: any) {
+      Alert.alert("Unable to post request", err || "Please try again later.");
+    }
+  };
+
   return (
     <SafeAreaView style={s.safe}>
       <StatusBar style="dark" />
@@ -680,7 +660,6 @@ function AppContent() {
           {/* Interactive live map */}
           <MapView
             ref={mapRef}
-            provider={PROVIDER_GOOGLE}
             style={{ width: "100%", height: "100%" }}
             showsUserLocation={true}
             showsMyLocationButton={false}
@@ -693,65 +672,28 @@ function AppContent() {
           >
 
             {mapMarkerGroups.map((group) => {
-              const isSelected = selectedHospitalMarker?.id === group.representative.id;
               const isCritical = group.urgency === "CRITICAL";
-              const accentColor = group.oxygenNeeded ? "#2b6485" : "#b7102a";
+              const accentColor = group.oxygenNeeded
+                ? markerAppearance.oxygen.border
+                : markerAppearance.blood.border;
 
               return (
                 <Marker
                   key={group.key}
                   coordinate={{ latitude: group.latitude, longitude: group.longitude }}
                   anchor={{ x: 0.5, y: 1 }}
-                  onPress={() => setSelectedHospitalMarker(group.representative)}
+                  onPress={() =>
+                    setSelectedHospitalMarker({
+                      ...group.representative,
+                      activeCount: group.activeCount,
+                    })
+                  }
                   tracksViewChanges={true}
                 >
-                  <View style={mStyles.markerRoot} collapsable={false}>
-                    <View
-                      style={[
-                        mStyles.markerBubble,
-                        group.oxygenNeeded ? mStyles.oxygenMarker : mStyles.bloodMarker,
-                        isCritical && mStyles.criticalMarker,
-                        isSelected && mStyles.selectedMarker,
-                      ]}
-                    >
-                      <View style={mStyles.markerTypeRow}>
-                        <Ionicons
-                          name={group.oxygenNeeded ? "pulse" : "water"}
-                          size={14}
-                          color={isCritical ? "#ffffff" : accentColor}
-                        />
-                        <Text style={[mStyles.markerDash, isCritical && mStyles.criticalText]}>-</Text>
-                        <Text
-                          style={[
-                            mStyles.markerLabel,
-                            isCritical && mStyles.criticalText,
-                          ]}
-                          numberOfLines={1}
-                        >
-                          {`${group.oxygenNeeded ? "O2" : group.bloodGroup || "O+"} ${group.urgency || "MEDIUM"}`}
-                        </Text>
-                      </View>
-
-                      <Text
-                        style={[
-                          mStyles.markerHospital,
-                          isCritical && { color: "#ffffff" },
-                        ]}
-                        numberOfLines={2}
-                      >
-                        {group.hospital}
-                      </Text>
-                    </View>
-                    <View
-                      style={[
-                        mStyles.markerPin,
-                        {
-                          backgroundColor: isCritical
-                            ? "#ff003c"
-                            : accentColor,
-                        },
-                      ]}
-                    />
+                  <View style={mStyles.bloodMarker} collapsable={false}>
+                    <Text style={mStyles.markerLabel}>
+                      {group.oxygenNeeded ? "O2" : group.bloodGroup || "O+"}
+                    </Text>
                   </View>
                 </Marker>
               );
@@ -867,19 +809,34 @@ function AppContent() {
                   <Ionicons name="close-circle" size={24} color="#8f6f6e" />
                 </Pressable>
               </View>
+              <View style={mStyles.detailsCapsuleRow}>
+                <Ionicons
+                  name={selectedHospitalMarker.oxygenNeeded ? "pulse" : "water"}
+                  size={13}
+                  color={selectedHospitalMarker.urgency === "CRITICAL" ? "#ff003c" : (selectedHospitalMarker.oxygenNeeded ? "#2b6485" : "#b7102a")}
+                />
+                <Text style={mStyles.detailsCapsuleText}>
+                  {`${selectedHospitalMarker.oxygenNeeded ? "O2" : selectedHospitalMarker.bloodGroup || "O+"} : ${selectedHospitalMarker.urgency || "MEDIUM"}`}
+                </Text>
+              </View>
 
               <Text style={mStyles.hospitalName} numberOfLines={1}>
                 {selectedHospitalMarker.hospital}
               </Text>
               <Text style={mStyles.patientName}>
-                Blood type required: {selectedHospitalMarker.bloodGroup || "O+"} • {selectedHospitalMarker.urgency || "MEDIUM"}
+                🩸 {selectedHospitalMarker.bloodGroup || "O+"}
               </Text>
               <Text style={mStyles.patientName}>
-                Patient: {selectedHospitalMarker.patientName || "Anonymous"} • Required: {selectedHospitalMarker.unitsRequired} {selectedHospitalMarker.oxygenNeeded ? "Liters" : "Units"}
+                👤 {selectedHospitalMarker.patientName || "Anonymous"} • Need: {selectedHospitalMarker.unitsRequired} {selectedHospitalMarker.oxygenNeeded ? "Liters" : "Units"}
               </Text>
               <Text style={mStyles.patientMeta}>
-                Distance: {formatDistanceFromUser(selectedHospitalMarker.latitude, selectedHospitalMarker.longitude)}
+                📍 {formatDistanceFromUser(selectedHospitalMarker.latitude, selectedHospitalMarker.longitude)}
               </Text>
+              {selectedHospitalMarker.activeCount > 1 ? (
+                <Text style={mStyles.patientMeta}>
+                  📌 Clustered with {selectedHospitalMarker.activeCount - 1} more request(s) at this location
+                </Text>
+              ) : null}
               
               <View style={{ flexDirection: "row", gap: 8, marginTop: 12 }}>
                 <Pressable 
@@ -1016,7 +973,7 @@ function AppContent() {
                 <Ionicons name="checkmark-circle-outline" size={20} color="#fff" />
               </View>
               <Text style={s.impactText}>
-                Your commitment to donating blood is saving lives every month. You are a community hero.
+                Your commitment to donating blood is saving lives. You are a community hero.
               </Text>
               <View style={s.impactStatsRow}>
                 <View style={s.impactStatItem}>
@@ -1051,10 +1008,131 @@ function AppContent() {
               </Pressable>
             </View>
 
+            <View style={s.quickRequestCard}>
+              <Text style={s.quickRequestTitle}>Immediate Request</Text>
+              <Text style={s.quickRequestSubtitle}>Post instantly for Blood or Oxygen using your profile details.</Text>
+
+              <View style={s.quickTypeRow}>
+                <Pressable
+                  onPress={() => setQuickRequestType("blood")}
+                  style={[s.quickTypeBtn, quickRequestType === "blood" && s.quickTypeBtnActive]}
+                >
+                  <Text style={[s.quickTypeTxt, quickRequestType === "blood" && s.quickTypeTxtActive]}>Blood</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => setQuickRequestType("oxygen")}
+                  style={[s.quickTypeBtn, quickRequestType === "oxygen" && s.quickTypeBtnActive]}
+                >
+                  <Text style={[s.quickTypeTxt, quickRequestType === "oxygen" && s.quickTypeTxtActive]}>Oxygen</Text>
+                </Pressable>
+              </View>
+
+              <Text style={s.quickLabel}>Hospital</Text>
+              <Pressable style={s.quickDropdown} onPress={() => setQuickHospitalOpen((prev) => !prev)}>
+                <Text style={s.quickDropdownText}>{quickHospital}</Text>
+                <Ionicons name={quickHospitalOpen ? "chevron-up" : "chevron-down"} size={16} color="#5b403f" />
+              </Pressable>
+              {quickHospitalOpen ? (
+                <View style={s.quickDropdownList}>
+                  {quickHospitalOptions.map((hospitalName) => (
+                    <Pressable
+                      key={hospitalName}
+                      style={s.quickDropdownItem}
+                      onPress={() => {
+                        setQuickHospital(hospitalName);
+                        setQuickHospitalOpen(false);
+                      }}
+                    >
+                      <Text style={s.quickDropdownItemText}>{hospitalName}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+              ) : null}
+
+              <Pressable
+                style={[s.quickPostBtn, emergency.createStatus === "loading" && { opacity: 0.7 }]}
+                onPress={handleQuickEmergencyRequest}
+                disabled={emergency.createStatus === "loading"}
+              >
+                <Ionicons name="send" size={14} color="#fff" />
+                <Text style={s.quickPostBtnText}>
+                  {emergency.createStatus === "loading" ? "Posting..." : "Post Immediate Request"}
+                </Text>
+              </Pressable>
+            </View>
+
+            <View style={s.quickRequestCard}>
+              <Text style={s.quickRequestTitle}>My Immediate Request Status</Text>
+              <Text style={s.quickRequestSubtitle}>Track your submitted requests and approval progress.</Text>
+              {myImmediateRequests.length === 0 ? (
+                <Text style={{ marginTop: 10, fontSize: 12, color: "#5b403f" }}>
+                  No immediate requests yet.
+                </Text>
+              ) : (
+                <View style={{ marginTop: 10, gap: 8 }}>
+                  {myImmediateRequests.slice(0, 3).map((item) => {
+                    const statusLabel =
+                      item.backendStatus === "PENDING"
+                        ? "Pending Admin Review"
+                        : item.backendStatus === "APPROVED"
+                          ? "Approved by Blood Bank"
+                          : item.backendStatus === "FORWARDED_TO_APP"
+                            ? "Forwarded to App"
+                            : item.backendStatus === "ASSIGNED"
+                              ? "Donor Assigned"
+                              : item.backendStatus === "RESOLVED"
+                                ? "Fulfilled"
+                                : item.backendStatus;
+                    const statusColor =
+                      item.backendStatus === "PENDING"
+                        ? "#8f6f6e"
+                        : item.backendStatus === "APPROVED"
+                          ? "#1d4ed8"
+                          : item.backendStatus === "FORWARDED_TO_APP"
+                            ? "#2b6485"
+                            : item.backendStatus === "ASSIGNED"
+                              ? "#0d9488"
+                              : item.backendStatus === "RESOLVED"
+                                ? "#2e7d32"
+                                : "#5b403f";
+
+                    return (
+                      <View key={item.id} style={{ borderWidth: 1, borderColor: "#EAECEF", borderRadius: 10, padding: 10, backgroundColor: "#fff" }}>
+                        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                          <Text style={{ fontSize: 13, fontWeight: "700", color: "#001b3c" }}>
+                            {item.oxygenNeeded ? "Oxygen Request" : `${item.bloodGroup} Blood Request`}
+                          </Text>
+                          <Text style={{ fontSize: 11, fontWeight: "700", color: statusColor }}>{statusLabel}</Text>
+                        </View>
+                        <Text style={{ marginTop: 4, fontSize: 12, color: "#5b403f" }}>{item.hospital}</Text>
+                        {item.backendStatus === "APPROVED" && !item.oxygenNeeded ? (
+                          <Text style={{ marginTop: 4, fontSize: 12, color: "#1d4ed8", fontWeight: "600" }}>
+                            {item.bloodGroup} blood approved by blood bank.
+                          </Text>
+                        ) : null}
+                      </View>
+                    );
+                  })}
+                </View>
+              )}
+            </View>
+
             {/* Live requests status */}
             {emergency.feedStatus === "loading" && urgentFeed.length === 0 ? (
               <View style={{ paddingVertical: 10, alignItems: "center" }}>
                 <Text style={s.small}>Loading requests from API...</Text>
+              </View>
+            ) : null}
+
+            {emergency.feedStatus !== "loading" && requestsToShow.length === 0 ? (
+              <View style={{ backgroundColor: "#fff", borderRadius: 16, padding: 16, borderWidth: 1, borderColor: "#EAECEF", alignItems: "center" }}>
+                <Ionicons name="checkmark-circle-outline" size={22} color="#2b6485" />
+                <Text style={{ marginTop: 8, fontSize: 14, fontWeight: "700", color: "#001b3c" }}>
+                  No live urgent requests right now
+                </Text>
+                <Text style={{ marginTop: 4, fontSize: 12, color: "#5b403f", textAlign: "center" }}>
+                  You are all caught up. Check again soon for new nearby requests.
+                </Text>
               </View>
             ) : null}
 
@@ -1100,8 +1178,8 @@ function AppContent() {
                     </Text>
                   </View>
                   <View style={s.hospitalInfo}>
-                    <Text style={s.hospitalName}>{item.hospital}</Text>
-                    <Text style={s.hospitalUnit}>{item.unit}</Text>
+                    <Text style={s.hospitalName}>{item.patientLabel}</Text>
+                    <Text style={s.hospitalUnit}>{item.hospital}</Text>
                   </View>
                 </View>
 
@@ -1109,12 +1187,8 @@ function AppContent() {
                   <Pressable 
                     style={s.donateButton} 
                     onPress={() => {
-                      if (item.liveItem) {
-                        setSelectedEmergencyId(item.liveItem.id);
-                        setRoute("requestDetails");
-                      } else {
-                        setRoute("map");
-                      }
+                      setSelectedEmergencyId(item.liveItem.id);
+                      setRoute("requestDetails");
                     }}
                   >
                     <Text style={s.donateButtonText}>Donate Now</Text>
@@ -1123,14 +1197,7 @@ function AppContent() {
                   <Pressable 
                     style={s.locateButton} 
                     onPress={() => {
-                      if (item.liveItem) {
-                        setSelectedHospitalMarker(item.liveItem);
-                      } else {
-                        const mockReq = allRequestsList.find(r => r.id === item.id);
-                        if (mockReq) {
-                          setSelectedHospitalMarker(mockReq);
-                        }
-                      }
+                      setSelectedHospitalMarker(item.liveItem);
                       setRoute("map");
                     }}
                   >
@@ -1174,7 +1241,7 @@ function AppContent() {
                   {selectedEmergency?.hospital ?? "City Hospital"}
                 </Text>
                 <Text style={{ fontSize: 13, color: "#5b403f", fontWeight: "500" }}>
-                  Active Request â€¢ Available 24/7
+                  Active Request | Available 24/7
                 </Text>
                 <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 6, marginTop: 4 }}>
                   <Ionicons name="location-outline" size={14} color="#5b403f" style={{ marginTop: 2 }} />
@@ -1235,7 +1302,6 @@ function AppContent() {
             {/* Real Map Visual */}
             <View style={{ height: 180, borderRadius: 16, overflow: "hidden", borderWidth: 1, borderColor: "#EAECEF" }}>
               <MapView
-                provider={PROVIDER_GOOGLE}
                 style={{ width: "100%", height: "100%" }}
                 initialRegion={{
                   latitude: selectedEmergency?.latitude || 15.8497,
@@ -1530,10 +1596,13 @@ function AppContent() {
                       {/* Details */}
                       <View style={{ flex: 1 }}>
                         <Text style={{ fontSize: 16, fontWeight: "800", color: "#001b3c" }} numberOfLines={1}>
+                          Patient: {item.patientName}
+                        </Text>
+                        <Text style={{ fontSize: 12, color: "#5b403f", marginTop: 2 }} numberOfLines={1}>
                           {item.hospital}
                         </Text>
-                        <Text style={{ fontSize: 12, color: "#5b403f", marginTop: 2 }}>
-                          Patient: {item.patientName} â€¢ Required: {item.unitsRequired} {item.oxygenNeeded ? "Liters" : "Units"}
+                        <Text style={{ fontSize: 12, color: "#5b403f", marginTop: 1 }}>
+                          Required: {item.unitsRequired} {item.oxygenNeeded ? "Liters" : "Units"}
                         </Text>
                       </View>
                     </View>
@@ -1652,7 +1721,7 @@ function AppContent() {
                 {profileSettings.profileInfo.fullName || auth.user?.fullName || "Donor User"}
               </Text>
               <Text style={s.mockProfileSubtitle}>
-                Silver Tier Donor â€¢ Member since Jan 2022
+                Silver Tier Donor | Member since Jan 2022
               </Text>
 
               {/* Donations Count Badge */}
@@ -2148,6 +2217,107 @@ const s = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     color: "#b7102a",
+  },
+  quickRequestCard: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: "#EAECEF",
+    marginBottom: 6,
+  },
+  quickRequestTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: c.text,
+  },
+  quickRequestSubtitle: {
+    marginTop: 3,
+    fontSize: 12,
+    color: "#5b403f",
+  },
+  quickTypeRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 10,
+  },
+  quickTypeBtn: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#E4E7EC",
+    backgroundColor: "#F8FAFC",
+  },
+  quickTypeBtnActive: {
+    backgroundColor: "#FFF1F3",
+    borderColor: "#F9C7D0",
+  },
+  quickTypeTxt: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#5b403f",
+  },
+  quickTypeTxtActive: {
+    color: "#b7102a",
+  },
+  quickLabel: {
+    marginTop: 12,
+    marginBottom: 6,
+    fontSize: 12,
+    fontWeight: "600",
+    color: c.text,
+  },
+  quickDropdown: {
+    borderWidth: 1,
+    borderColor: "#E4E7EC",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 11,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#fff",
+  },
+  quickDropdownText: {
+    fontSize: 13,
+    color: c.text,
+    fontWeight: "500",
+  },
+  quickDropdownList: {
+    marginTop: 6,
+    borderWidth: 1,
+    borderColor: "#E4E7EC",
+    borderRadius: 10,
+    backgroundColor: "#fff",
+    overflow: "hidden",
+  },
+  quickDropdownItem: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F4F8",
+  },
+  quickDropdownItemText: {
+    fontSize: 13,
+    color: c.text,
+  },
+  quickPostBtn: {
+    marginTop: 12,
+    backgroundColor: "#b7102a",
+    borderRadius: 10,
+    paddingVertical: 11,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 8,
+  },
+  quickPostBtnText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#fff",
   },
 
   // Urgent Request Card Styles
@@ -2767,6 +2937,28 @@ const s = StyleSheet.create({
   }
 });
 
+const markerAppearance = {
+  minWidth: 176,
+  bubbleMinHeight: 52,
+  pinWidth: 6,
+  pinHeight: 10,
+  iconSize: 15,
+  blood: {
+    border: "#b7102a",
+    selectedBg: "#FFF0F0",
+  },
+  oxygen: {
+    border: "#2b6485",
+    selectedBg: "#EAF5FC",
+  },
+  critical: {
+    border: "#ff003c",
+    bg: "#ffe5ec",
+    shadow: "#ff003c",
+    text: "#ff003c",
+  },
+} as const;
+
 const mStyles = StyleSheet.create({
   userLocationBubble: {
     width: 24,
@@ -2785,14 +2977,14 @@ const mStyles = StyleSheet.create({
     borderColor: "#ffffff",
   },
   markerRoot: {
-    width: 168,
-    minHeight: 58,
+    minWidth: markerAppearance.minWidth,
+    minHeight: markerAppearance.bubbleMinHeight + markerAppearance.pinHeight,
+    paddingHorizontal: 8,
     alignItems: "center",
-    overflow: "visible",
   },
   markerBubble: {
-    width: 168,
-    minHeight: 48,
+    minWidth: markerAppearance.minWidth,
+    minHeight: markerAppearance.bubbleMinHeight,
     flexDirection: "column",
     alignItems: "stretch",
     backgroundColor: "#ffffff",
@@ -2824,14 +3016,19 @@ const mStyles = StyleSheet.create({
     color: "#001b3c",
     lineHeight: 13,
   },
+  markerClusterCount: {
+    fontSize: 10,
+    fontWeight: "800",
+    color: "#2b6485",
+    marginTop: 2,
+  },
   bloodMarker: {
-    borderColor: "#b7102a",
+    borderColor: markerAppearance.blood.border,
   },
   oxygenMarker: {
-    borderColor: "#2b6485",
+    borderColor: markerAppearance.oxygen.border,
   },
   selectedMarker: {
-    backgroundColor: "#FFF0F0",
     borderWidth: 3,
   },
   markerLabel: {
@@ -2841,24 +3038,112 @@ const mStyles = StyleSheet.create({
     paddingRight: 2,
   },
   criticalMarker: {
-    borderColor: "#ff003c",
-    backgroundColor: "#ffe5ec",
+    borderColor: markerAppearance.critical.border,
+    backgroundColor: markerAppearance.critical.bg,
     borderWidth: 3,
-    shadowColor: "#ff003c",
+    shadowColor: markerAppearance.critical.shadow,
     shadowOpacity: 0.4,
     shadowRadius: 6,
   },
   criticalText: {
-    color: "#ff003c",
+    color: markerAppearance.critical.text,
     fontWeight: "900",
   },
   markerPin: {
-    width: 4,
-    height: 8,
+    width: markerAppearance.pinWidth,
+    height: markerAppearance.pinHeight,
     alignSelf: "center",
     marginTop: -2,
     borderBottomLeftRadius: 2,
     borderBottomRightRadius: 2,
+  },
+  capsuleRoot: {
+    minWidth: 152,
+    maxWidth: 168,
+    alignItems: "center",
+    paddingHorizontal: 6,
+  },
+  capsuleBody: {
+    minWidth: 152,
+    maxWidth: 168,
+    borderWidth: 2,
+    borderRadius: 999,
+    backgroundColor: "#ffffff",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  capsuleTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+  },
+  capsuleTopText: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: "#001b3c",
+  },
+  capsuleHospital: {
+    marginTop: 2,
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#001b3c",
+  },
+  capsuleCritical: {
+    backgroundColor: markerAppearance.critical.bg,
+  },
+  capsuleCriticalText: {
+    color: "#ffffff",
+  },
+  capsulePin: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginTop: -2,
+  },
+  calloutWrap: {
+    alignItems: "center",
+    paddingBottom: 2,
+  },
+  iconMarkerWrap: {
+    width: 48,
+    alignItems: "center",
+    overflow: "visible",
+  },
+  iconMarkerBubble: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    borderWidth: 2,
+    backgroundColor: "#ffffff",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  iconMarkerCritical: {
+    backgroundColor: markerAppearance.critical.bg,
+  },
+  iconMarkerBadge: {
+    marginTop: 4,
+    minWidth: 30,
+    height: 16,
+    borderRadius: 8,
+    paddingHorizontal: 6,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  iconMarkerBadgeText: {
+    fontSize: 9,
+    fontWeight: "900",
+    color: "#ffffff",
   },
   floatingFilterCard: {
     position: "absolute",
@@ -2958,6 +3243,24 @@ const mStyles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "800",
     textTransform: "uppercase",
+  },
+  detailsCapsuleRow: {
+    marginBottom: 8,
+    alignSelf: "flex-start",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    backgroundColor: "#F9FAFB",
+  },
+  detailsCapsuleText: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: "#001b3c",
   },
   hospitalName: {
     fontSize: 18,
