@@ -178,40 +178,43 @@ function AppContent() {
 
   // Combined verified requests from live feed
   const allRequestsList = useMemo(() => {
-    const BELAGAVI_PRESETS = [
-      { latitude: 15.8497, longitude: 74.4977 }, // Channamma Circle
-      { latitude: 15.8400, longitude: 74.5020 }, // Tilakwadi
-      { latitude: 15.8590, longitude: 74.5080 }, // Camp
-      { latitude: 15.8320, longitude: 74.5120 }, // Shahapur
-      { latitude: 15.8370, longitude: 74.4920 }, // Hindwadi
-      { latitude: 15.8200, longitude: 74.4990 }, // Angol
-      { latitude: 15.8110, longitude: 74.4820 }  // Udyambag
+    const REAL_HOSPITAL_LOCATIONS = [
+      { latitude: 15.887074, longitude: 74.519596, name: "KLE Hospital" }, // KLE Hospital
+      { latitude: 15.825873, longitude: 74.497471, name: "Venugram Hospital" } // Venugram Hospital
     ];
 
     const getRealCoordinates = (hospitalName: string, createdLat: any, createdLng: any, idx: number) => {
       let lat = createdLat != null ? Number(createdLat) : null;
       let lng = createdLng != null ? Number(createdLng) : null;
+      // If valid coordinates exist in database, always use them
       if (lat && lng && !isNaN(lat) && !isNaN(lng)) {
         return { latitude: lat, longitude: lng };
       }
 
+      // Fall back to known hospital locations
       const name = (hospitalName || "").toLowerCase();
       if (name.includes("kle")) {
-        return { latitude: 15.887074, longitude: 74.519596 }; // Real KLE Hospital
+        return { latitude: 15.887074, longitude: 74.519596 }; // KLE Hospital
       }
       if (name.includes("venugram")) {
-        return { latitude: 15.825873, longitude: 74.497471 }; // Real Venugram Hospital
-      }
-      if (name.includes("lifestream") || name.includes("system admin")) {
-        return { latitude: 15.8352169, longitude: 74.5067137 }; // Real LifeStream Blood Bank
+        return { latitude: 15.825873, longitude: 74.497471 }; // Venugram Hospital
       }
 
-      const preset = BELAGAVI_PRESETS[idx % BELAGAVI_PRESETS.length];
-      return { latitude: preset.latitude, longitude: preset.longitude };
+      // Default fallback to first hospital in list
+      return { latitude: REAL_HOSPITAL_LOCATIONS[0].latitude, longitude: REAL_HOSPITAL_LOCATIONS[0].longitude };
+    };
+
+    const getHospitalAddress = (dbAddress?: string | null) => {
+      // Only use database address - no hardcoded fallbacks
+      if (dbAddress && dbAddress.trim().length > 0) {
+        return dbAddress.trim();
+      }
+      return "";
     };
 
     const live = emergency.feed.map((item, idx) => {
       const coords = getRealCoordinates(item.hospital, item.latitude, item.longitude, idx);
+      const address = getHospitalAddress(item.address);
 
       return {
         id: item.id,
@@ -228,7 +231,7 @@ function AppContent() {
         distance: formatDistanceFromUser(coords.latitude, coords.longitude),
         latitude: coords.latitude,
         longitude: coords.longitude,
-        address: item.address || "450 Medical Center Drive, West District, Metro City 10293",
+        address: address,
         liveItem: item as any
       };
     });
@@ -284,6 +287,7 @@ function AppContent() {
         oxygenNeeded: representative.oxygenNeeded,
         urgency: representative.urgency,
         activeCount: items.length,
+        clusterItems: sorted,
         representative,
       };
     });
@@ -676,23 +680,34 @@ function AppContent() {
               const accentColor = group.oxygenNeeded
                 ? markerAppearance.oxygen.border
                 : markerAppearance.blood.border;
+              const markerLabel = group.oxygenNeeded ? "O2" : group.bloodGroup || "O+";
 
               return (
                 <Marker
                   key={group.key}
                   coordinate={{ latitude: group.latitude, longitude: group.longitude }}
-                  anchor={{ x: 0.5, y: 1 }}
                   onPress={() =>
                     setSelectedHospitalMarker({
                       ...group.representative,
                       activeCount: group.activeCount,
+                      clusterItems: group.clusterItems,
+                      clusterIndex: 0,
                     })
                   }
-                  tracksViewChanges={true}
+                  anchor={{ x: 0.5, y: 0.5 }}
+                  tracksViewChanges={Platform.OS === "android"}
+                  title={`${group.oxygenNeeded ? "Oxygen" : "Blood"} ${markerLabel}${group.activeCount > 1 ? ` x${group.activeCount}` : ""}`}
+                  description={group.hospital}
                 >
-                  <View style={mStyles.bloodMarker} collapsable={false}>
-                    <Text style={mStyles.markerLabel}>
-                      {group.oxygenNeeded ? "O2" : group.bloodGroup || "O+"}
+                  <View
+                    style={[
+                      mStyles.mapIconMarker,
+                      { borderColor: isCritical ? markerAppearance.critical.border : accentColor },
+                    ]}
+                    collapsable={false}
+                  >
+                    <Text style={mStyles.mapIconMarkerText}>
+                      {group.oxygenNeeded ? "O2" : "🩸"}
                     </Text>
                   </View>
                 </Marker>
@@ -758,6 +773,20 @@ function AppContent() {
               </ScrollView>
             )}
           </View>
+
+          {selectedHospitalMarker ? (
+            <View style={mStyles.selectedMarkerOverlay}>
+              <Ionicons
+                name={selectedHospitalMarker.oxygenNeeded ? "pulse" : "water"}
+                size={13}
+                color={selectedHospitalMarker.oxygenNeeded ? "#2b6485" : "#b7102a"}
+              />
+              <Text style={mStyles.selectedMarkerOverlayText}>
+                {selectedHospitalMarker.oxygenNeeded ? "O2" : (selectedHospitalMarker.bloodGroup || "O+")}
+                {selectedHospitalMarker.activeCount > 1 ? ` x${selectedHospitalMarker.activeCount}` : ""}
+              </Text>
+            </View>
+          ) : null}
 
           {/* Floating Action Buttons */}
           <View style={mStyles.floatingFabContainer}>
@@ -833,9 +862,51 @@ function AppContent() {
                 📍 {formatDistanceFromUser(selectedHospitalMarker.latitude, selectedHospitalMarker.longitude)}
               </Text>
               {selectedHospitalMarker.activeCount > 1 ? (
-                <Text style={mStyles.patientMeta}>
-                  📌 Clustered with {selectedHospitalMarker.activeCount - 1} more request(s) at this location
-                </Text>
+                <View style={mStyles.clusterNavRow}>
+                  <Pressable
+                    style={mStyles.clusterNavBtn}
+                    onPress={() =>
+                      setSelectedHospitalMarker((prev: any) => {
+                        if (!prev?.clusterItems?.length) return prev;
+                        const total = prev.clusterItems.length;
+                        const current = typeof prev.clusterIndex === "number" ? prev.clusterIndex : 0;
+                        const nextIndex = (current - 1 + total) % total;
+                        return {
+                          ...prev,
+                          ...prev.clusterItems[nextIndex],
+                          activeCount: total,
+                          clusterItems: prev.clusterItems,
+                          clusterIndex: nextIndex,
+                        };
+                      })
+                    }
+                  >
+                    <Text style={mStyles.clusterNavBtnText}>{"<"}</Text>
+                  </Pressable>
+                  <Text style={mStyles.patientMeta}>
+                    📌 Request {(selectedHospitalMarker.clusterIndex ?? 0) + 1}/{selectedHospitalMarker.activeCount}
+                  </Text>
+                  <Pressable
+                    style={mStyles.clusterNavBtn}
+                    onPress={() =>
+                      setSelectedHospitalMarker((prev: any) => {
+                        if (!prev?.clusterItems?.length) return prev;
+                        const total = prev.clusterItems.length;
+                        const current = typeof prev.clusterIndex === "number" ? prev.clusterIndex : 0;
+                        const nextIndex = (current + 1) % total;
+                        return {
+                          ...prev,
+                          ...prev.clusterItems[nextIndex],
+                          activeCount: total,
+                          clusterItems: prev.clusterItems,
+                          clusterIndex: nextIndex,
+                        };
+                      })
+                    }
+                  >
+                    <Text style={mStyles.clusterNavBtnText}>{">"}</Text>
+                  </Pressable>
+                </View>
               ) : null}
               
               <View style={{ flexDirection: "row", gap: 8, marginTop: 12 }}>
@@ -3110,8 +3181,12 @@ const mStyles = StyleSheet.create({
     paddingBottom: 2,
   },
   iconMarkerWrap: {
-    width: 48,
+    width: 64,
+    minHeight: 62,
+    paddingTop: 2,
+    paddingBottom: 6,
     alignItems: "center",
+    justifyContent: "flex-start",
     overflow: "visible",
   },
   iconMarkerBubble: {
@@ -3131,19 +3206,103 @@ const mStyles = StyleSheet.create({
   iconMarkerCritical: {
     backgroundColor: markerAppearance.critical.bg,
   },
+  iconMarkerDrop: {
+    width: 12,
+    height: 16,
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
+    borderBottomLeftRadius: 8,
+    borderBottomRightRadius: 8,
+    transform: [{ rotate: "45deg" }],
+    marginTop: -1,
+  },
+  iconMarkerPulseDot: {
+    width: 13,
+    height: 13,
+    borderRadius: 7,
+  },
   iconMarkerBadge: {
     marginTop: 4,
-    minWidth: 30,
-    height: 16,
-    borderRadius: 8,
-    paddingHorizontal: 6,
+    minWidth: 46,
+    height: 18,
+    borderRadius: 9,
+    paddingHorizontal: 8,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.95)",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.14,
+    shadowRadius: 2,
+    elevation: 3,
+  },
+  iconMarkerBadgeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  iconMarkerBadgeDrop: {
+    width: 7,
+    height: 9,
+    borderRadius: 5,
+    backgroundColor: "#ffffff",
+    transform: [{ rotate: "45deg" }],
+    marginTop: -1,
+  },
+  iconMarkerBadgePulseDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: "#ffffff",
+  },
+  iconMarkerBadgeText: {
+    fontSize: 10,
+    fontWeight: "900",
+    color: "#ffffff",
+  },
+  iconMarkerCountPill: {
+    position: "absolute",
+    top: -6,
+    right: -10,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    paddingHorizontal: 5,
+    backgroundColor: "#111827",
+    borderWidth: 2,
+    borderColor: "#ffffff",
     alignItems: "center",
     justifyContent: "center",
   },
-  iconMarkerBadgeText: {
-    fontSize: 9,
+  iconMarkerCountText: {
+    fontSize: 10,
     fontWeight: "900",
     color: "#ffffff",
+    marginTop: -1,
+  },
+  simpleMarkerPill: {
+    width: 92,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#ffffff",
+    borderWidth: 2,
+  },
+  simpleMarkerPillCritical: {
+    backgroundColor: markerAppearance.critical.bg,
+    borderColor: markerAppearance.critical.border,
+  },
+  simpleMarkerPillText: {
+    fontSize: 12,
+    lineHeight: 14,
+    fontWeight: "800",
+    color: "#001b3c",
+    textAlign: "center",
+  },
+  simpleMarkerPillTextCritical: {
+    color: markerAppearance.critical.text,
   },
   floatingFilterCard: {
     position: "absolute",
@@ -3161,6 +3320,46 @@ const mStyles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 4,
     zIndex: 10,
+  },
+  selectedMarkerOverlay: {
+    position: "absolute",
+    top: 168,
+    left: 16,
+    alignSelf: "flex-start",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    height: 30,
+    paddingHorizontal: 10,
+    borderRadius: 15,
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#e4bebc",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 3,
+    zIndex: 9,
+  },
+  selectedMarkerOverlayText: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#001b3c",
+  },
+  mapIconMarker: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: "#ffffff",
+    borderWidth: 2,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  mapIconMarkerText: {
+    fontSize: 16,
+    fontWeight: "800",
+    lineHeight: 18,
   },
   filterTitle: {
     fontSize: 15,
@@ -3277,6 +3476,28 @@ const mStyles = StyleSheet.create({
     color: "#5b6472",
     marginTop: 4,
     fontWeight: "600",
+  },
+  clusterNavRow: {
+    marginTop: 6,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  clusterNavBtn: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: "#F7F8FC",
+    borderWidth: 1,
+    borderColor: "#E4BEBC",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  clusterNavBtnText: {
+    fontSize: 14,
+    fontWeight: "900",
+    color: "#b7102a",
+    lineHeight: 16,
   },
   detailsBtn: {
     flex: 1,

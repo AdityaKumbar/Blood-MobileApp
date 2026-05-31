@@ -24,6 +24,43 @@ export interface BackendEmergencyRequest {
   } | null;
 }
 
+type HospitalPreset = {
+  keywords: string[];
+  latitude: number;
+  longitude: number;
+  address: string;
+};
+
+const HOSPITAL_PRESETS: HospitalPreset[] = [
+  {
+    keywords: ["venugram"],
+    latitude: 15.825873,
+    longitude: 74.497471,
+    address: "3rd gate Congress road"
+  },
+  {
+    keywords: ["kle"],
+    latitude: 15.887074,
+    longitude: 74.519596,
+    address: "KLE Hospital, Belagavi"
+  },
+  {
+    keywords: ["lifestream", "system admin"],
+    latitude: 15.8352169,
+    longitude: 74.5067137,
+    address: "Belagavi, India"
+  }
+];
+
+function resolveHospitalPreset(hospitalName: string | null | undefined) {
+  const name = (hospitalName ?? "").toLowerCase();
+  if (!name) return null;
+  return (
+    HOSPITAL_PRESETS.find((preset) => preset.keywords.some((keyword) => name.includes(keyword))) ??
+    null
+  );
+}
+
 export function mapBackendStatus(status: BackendEmergencyRequest["status"]): EmergencyRequestStatus {
   if (status === "RESOLVED") return "FULFILLED";
   if (status === "REJECTED") return "CANCELLED";
@@ -32,6 +69,7 @@ export function mapBackendStatus(status: BackendEmergencyRequest["status"]): Eme
 }
 
 export function mapEmergencyItem(item: BackendEmergencyRequest): EmergencyRequest {
+  const preset = resolveHospitalPreset(item.hospital);
   return {
     id: item._id,
     patientName: item.patientName,
@@ -45,9 +83,9 @@ export function mapEmergencyItem(item: BackendEmergencyRequest): EmergencyReques
     backendStatus: item.status,
     createdAt: item.createdAt,
     updatedAt: item.updatedAt,
-    latitude: item.createdBy?.latitude ?? null,
-    longitude: item.createdBy?.longitude ?? null,
-    address: item.createdBy?.address ?? null,
+    latitude: preset?.latitude ?? item.createdBy?.latitude ?? null,
+    longitude: preset?.longitude ?? item.createdBy?.longitude ?? null,
+    address: preset?.address ?? item.createdBy?.address ?? null,
     isInventory: !!item.isInventory
   };
 }
